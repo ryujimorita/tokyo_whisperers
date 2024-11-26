@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "tokyo-whisperers"
+version = "0.1.0"
+description = ""
+authors = ["mmbajo <markarjaybajo@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+reazonspeech-nemo-asr = {git = "https://github.com/reazon-research/ReazonSpeech", subdirectory = "pkg/nemo-asr"}
+mecab-python3 = "^1.0.10"
+unidic-lite = "^1.0.8"
+evaluate = "^0.4.3"
+loguru = "^0.7.2"
+transformers = {extras = ["torch"], version = "^4.46.3"}
+datasets = "^3.1.0"
+torch = "^2.5.1"
+
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
