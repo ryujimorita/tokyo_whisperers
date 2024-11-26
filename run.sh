@@ -1,0 +1,32 @@
+poetry run python3 main.py \
+    --model_name_or_path="openai/whisper-tiny" \
+    --dataset_config_name="ja" \
+    --language="japanese" \
+    --max_steps="2" \
+    --output_dir="./output/test" \
+	--per_device_train_batch_size="8" \
+	--per_device_eval_batch_size="8" \
+    --gradient_accumulation_steps="2" \
+	--logging_steps="100" \
+	--learning_rate="1e-7" \
+	--warmup_steps="500" \
+	--evaluation_strategy="steps" \
+	--eval_steps="5" \
+	--save_strategy="steps" \
+	--save_steps="1000" \
+	--generation_max_length="225" \
+	--length_column_name="input_length" \
+	--max_duration_in_seconds="30" \
+	--text_column_name="sentence" \
+	--freeze_feature_encoder="False" \
+	--report_to="tensorboard" \
+	--metric_for_best_model="wer" \
+	--greater_is_better="False" \
+	--load_best_model_at_end \
+	--gradient_checkpointing \
+	--fp16 \
+	--overwrite_output_dir \
+	--do_train \
+	--do_eval \
+	--predict_with_generate \
+	--use_auth_token
