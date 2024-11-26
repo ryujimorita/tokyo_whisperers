@@ -1,6 +1,5 @@
-python3 main.py \
+poetry run python3 main.py \
     --model_name_or_path="openai/whisper-tiny" \
-    --dataset_name="mozilla-foundation/common_voice_11_0" \
     --dataset_config_name="ja" \
     --language="japanese" \
     --max_steps="2" \

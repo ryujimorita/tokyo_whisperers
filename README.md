@@ -12,3 +12,7 @@ poetry run pip install cython
 poetry run pip install --no-use-pep517 youtokentome
 poetry install
 ```
+3. Run the script
+```
+sh run.sh
+```
