@@ -24,6 +24,7 @@ from src.dataloader import load_datasets_from_config
 from src.metrics import MetricsCalculator, TextNormalizer
 from src.callbacks import ShuffleCallback, EpochProgressCallback
 from loguru import logger
+from src.metrics_cache import MetricsCache
 
 
 def main():
@@ -40,11 +41,17 @@ def main():
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
     # setting seed for reproducibility
+    logger.info(f"Setting seed to {training_args.seed}")
     set_seed(training_args.seed)
+
+    # init metrics cache
+    logger.info(f"Initializing metrics cache at {training_args.output_dir}")
+    mt = MetricsCache(training_args.output_dir)
 
     # load datasets
     raw_datasets = DatasetDict()
     if training_args.do_train:
+        logger.info(f"Loading training dataset from {data_args.dataset_config_path}")
         raw_datasets["train"] = load_datasets_from_config(
             data_args.dataset_config_path,
             "train",
@@ -53,6 +60,7 @@ def main():
         )
 
     if training_args.do_eval:
+        logger.info(f"Loading evaluation dataset from {data_args.dataset_config_path}")
         raw_datasets["eval"] = load_datasets_from_config(
             data_args.dataset_config_path,
             "eval",
@@ -201,16 +209,22 @@ def main():
         elif last_checkpoint is not None:
             checkpoint = last_checkpoint
 
+        logger.info(f"Training model from checkpoint {checkpoint}")
         train_result = trainer.train(resume_from_checkpoint=checkpoint)
         trainer.save_model()
 
         # log and save metrics
-        # TODO: add json metrics saver for plotting later
         metrics = train_result.metrics
         if data_args.max_train_samples:
             metrics["train_samples"] = data_args.max_train_samples
+
+        # log metrics using trainer's logger
         trainer.log_metrics("train", metrics)
         trainer.save_metrics("train", metrics)
+
+        # add training metrics to cache
+        mt.add_metrics(metrics, "train")
+
         trainer.save_state()
 
     # eval
@@ -229,7 +243,9 @@ def main():
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
 
-    # Write Training Stats
+        # add eval metrics to cache
+        mt.add_metrics(metrics, "eval")
+
     kwargs = {
         "finetuned_from": model_args.model_name_or_path,
         "tasks": "automatic-speech-recognition",
