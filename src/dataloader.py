@@ -55,7 +55,7 @@ def load_datasets_from_config(
         if dataset_fraction < 1.0:
             num_examples = len(dataset)
             num_keep = int(num_examples * dataset_fraction)
-            dataset = dataset.shuffle(seed=42).select(range(num_keep))
+            dataset = dataset.shuffle(seed=42).select(range(num_keep)) # TODO: make this seed refer to the seed argument in args.py
 
         dataset = dataset.cast_column("audio", Audio(sampling_rate))
 
