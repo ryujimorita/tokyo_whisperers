@@ -2,7 +2,7 @@ import os
 import sys
 import logging
 from transformers import (
-    HfArgumentParser, 
+    HfArgumentParser,
     Seq2SeqTrainer,
     Seq2SeqTrainingArguments,
     AutoConfig,
@@ -15,43 +15,64 @@ from transformers import (
 from transformers.trainer_utils import get_last_checkpoint, is_main_process
 from transformers.utils import check_min_version, send_example_telemetry
 from datasets import DatasetDict
-from schemas import ModelArguments, DataTrainingArguments, DataCollatorSpeechSeq2SeqWithPadding
+from schemas import (
+    ModelArguments,
+    DataTrainingArguments,
+    DataCollatorSpeechSeq2SeqWithPadding,
+)
 from src.dataloader import load_datasets_from_config
 from src.metrics import MetricsCalculator, TextNormalizer
 from src.callbacks import ShuffleCallback, EpochProgressCallback
 from loguru import logger
+from src.metrics_cache import MetricsCache
+
 
 def main():
     # parse arguments
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments))
-    
+    parser = HfArgumentParser(
+        (ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments)
+    )
+
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
-        model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
+        model_args, data_args, training_args = parser.parse_json_file(
+            json_file=os.path.abspath(sys.argv[1])
+        )
     else:
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
-        
+
     # setting seed for reproducibility
+    logger.info(f"Setting seed to {training_args.seed}")
     set_seed(training_args.seed)
-    
+
+    # init metrics cache
+    logger.info(f"Initializing metrics cache at {training_args.output_dir}")
+    mt = MetricsCache(training_args.output_dir)
+
     # load datasets
     raw_datasets = DatasetDict()
     if training_args.do_train:
+        logger.info(f"Loading training dataset from {data_args.dataset_config_path}")
         raw_datasets["train"] = load_datasets_from_config(
-            "conf/dataset_config.yaml",
+            data_args.dataset_config_path,
             "train",
-            16000
+            16000,
+            data_args.train_dataset_fraction,
         )
-    
+
     if training_args.do_eval:
+        logger.info(f"Loading evaluation dataset from {data_args.dataset_config_path}")
         raw_datasets["eval"] = load_datasets_from_config(
-            "conf/dataset_config.yaml", 
+            data_args.dataset_config_path,
             "eval",
-            16000
+            16000,
+            data_args.eval_dataset_fraction,
         )
 
     # load model and tokenizer
     config = AutoConfig.from_pretrained(model_args.model_name_or_path)
-    feature_extractor = AutoFeatureExtractor.from_pretrained(model_args.model_name_or_path)
+    feature_extractor = AutoFeatureExtractor.from_pretrained(
+        model_args.model_name_or_path
+    )
     tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path)
     model = AutoModelForSpeechSeq2Seq.from_pretrained(model_args.model_name_or_path)
 
@@ -66,7 +87,7 @@ def main():
     if model_args.freeze_encoder:
         model.freeze_encoder()
         model.model.encoder.gradient_checkpointing = False
-        
+
     # init processor and data collator
     feature_extractor.save_pretrained(training_args.output_dir)
     tokenizer.save_pretrained(training_args.output_dir)
@@ -84,20 +105,23 @@ def main():
     def prepare_dataset(batch):
         # process audio
         sample = batch[data_args.audio_column_name]
-        inputs = feature_extractor(sample["array"], sampling_rate=sample["sampling_rate"])
-        batch[feature_extractor.model_input_names[0]] = inputs.get(feature_extractor.model_input_names[0])[0]
+        inputs = feature_extractor(
+            sample["array"], sampling_rate=sample["sampling_rate"]
+        )
+        batch[feature_extractor.model_input_names[0]] = inputs.get(
+            feature_extractor.model_input_names[0]
+        )[0]
         batch["input_length"] = len(sample["array"])
 
-        # process text 
+        # process text
         # TODO: check manually the labels could be weird
         input_str = batch[data_args.text_column_name]
         input_str = text_normalizer.normalize(
-            input_str, 
-            do_lower=data_args.do_lower_case
+            input_str, do_lower=data_args.do_lower_case
         )
         if data_args.do_remove_punctuation:
             input_str = text_normalizer.normalizer(input_str).strip()
-        
+
         batch["labels"] = tokenizer(input_str).input_ids
         return batch
 
@@ -114,8 +138,12 @@ def main():
         )
 
     # filter datasets based on audio length
-    max_input_length = data_args.max_duration_in_seconds * feature_extractor.sampling_rate
-    min_input_length = data_args.min_duration_in_seconds * feature_extractor.sampling_rate
+    max_input_length = (
+        data_args.max_duration_in_seconds * feature_extractor.sampling_rate
+    )
+    min_input_length = (
+        data_args.min_duration_in_seconds * feature_extractor.sampling_rate
+    )
 
     def is_audio_in_length_range(length):
         return min_input_length < length < max_input_length
@@ -127,8 +155,7 @@ def main():
 
     # init metrics calculator
     metrics_calculator = MetricsCalculator(
-        tokenizer=tokenizer,
-        do_normalize_eval=data_args.do_normalize_eval
+        tokenizer=tokenizer, do_normalize_eval=data_args.do_normalize_eval
     )
 
     # save processor components
@@ -146,25 +173,35 @@ def main():
         eval_dataset=vectorized_datasets["eval"] if training_args.do_eval else None,
         tokenizer=feature_extractor,
         data_collator=data_collator,
-        compute_metrics=metrics_calculator.compute_metrics if training_args.predict_with_generate else None,
+        compute_metrics=(
+            metrics_calculator.compute_metrics
+            if training_args.predict_with_generate
+            else None
+        ),
         callbacks=[ShuffleCallback()],
     )
 
     # training
     last_checkpoint = None
-    if os.path.isdir(training_args.output_dir) and training_args.do_train and not training_args.overwrite_output_dir:
+    if (
+        os.path.isdir(training_args.output_dir)
+        and training_args.do_train
+        and not training_args.overwrite_output_dir
+    ):
         last_checkpoint = get_last_checkpoint(training_args.output_dir)
         if last_checkpoint is None and len(os.listdir(training_args.output_dir)) > 0:
             raise ValueError(
                 f"Output directory ({training_args.output_dir}) already exists and is not empty. "
                 "Use --overwrite_output_dir to overcome."
             )
-        elif last_checkpoint is not None and training_args.resume_from_checkpoint is None:
+        elif (
+            last_checkpoint is not None and training_args.resume_from_checkpoint is None
+        ):
             logger.info(
                 f"Checkpoint detected, resuming training at {last_checkpoint}. To avoid this behavior, change "
                 "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
             )
-    
+
     if training_args.do_train:
         checkpoint = None
         if training_args.resume_from_checkpoint is not None:
@@ -172,16 +209,22 @@ def main():
         elif last_checkpoint is not None:
             checkpoint = last_checkpoint
 
+        logger.info(f"Training model from checkpoint {checkpoint}")
         train_result = trainer.train(resume_from_checkpoint=checkpoint)
         trainer.save_model()
 
         # log and save metrics
-        # TODO: add json metrics saver for plotting later
         metrics = train_result.metrics
         if data_args.max_train_samples:
             metrics["train_samples"] = data_args.max_train_samples
+
+        # log metrics using trainer's logger
         trainer.log_metrics("train", metrics)
         trainer.save_metrics("train", metrics)
+
+        # add training metrics to cache
+        mt.add_metrics(metrics, "train")
+
         trainer.save_state()
 
     # eval
@@ -193,14 +236,16 @@ def main():
             max_length=training_args.generation_max_length,
             num_beams=training_args.generation_num_beams,
         )
-        
+
         if data_args.max_eval_samples:
             metrics["eval_samples"] = data_args.max_eval_samples
 
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
 
-    # Write Training Stats
+        # add eval metrics to cache
+        mt.add_metrics(metrics, "eval")
+
     kwargs = {
         "finetuned_from": model_args.model_name_or_path,
         "tasks": "automatic-speech-recognition",
@@ -210,7 +255,9 @@ def main():
     if data_args.dataset_name is not None:
         kwargs["dataset_tags"] = data_args.dataset_name
         if data_args.dataset_config_name is not None:
-            kwargs["dataset"] = f"{data_args.dataset_name} {data_args.dataset_config_name}"
+            kwargs["dataset"] = (
+                f"{data_args.dataset_name} {data_args.dataset_config_name}"
+            )
         else:
             kwargs["dataset"] = data_args.dataset_name
         if "common_voice" in data_args.dataset_name:
@@ -224,6 +271,7 @@ def main():
         trainer.create_model_card(**kwargs)
 
     return results
+
 
 if __name__ == "__main__":
     main()

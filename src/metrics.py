@@ -35,7 +35,9 @@ class MetricsCalculator:
         pred.label_ids[pred.label_ids == -100] = self.tokenizer.pad_token_id
 
         pred_str = self.tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
-        label_str = self.tokenizer.batch_decode(pred.label_ids, skip_special_tokens=True)
+        label_str = self.tokenizer.batch_decode(
+            pred.label_ids, skip_special_tokens=True
+        )
 
         if self.do_normalize_eval:
             pred_str = [self.normalizer(pred) for pred in pred_str]
@@ -43,5 +45,5 @@ class MetricsCalculator:
 
         wer = 100 * self.wer_metric.compute(predictions=pred_str, references=label_str)
         cer = 100 * self.cer_metric.compute(predictions=pred_str, references=label_str)
-        
+
         return {"wer": wer, "cer": cer}

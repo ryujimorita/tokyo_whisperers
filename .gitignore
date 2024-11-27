@@ -1,4 +1,14 @@
 output
+*.aux
+*.log
+*.pdf
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.bbl
+*.blg
+*.out
+*.brf
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

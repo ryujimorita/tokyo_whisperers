@@ -1,6 +1,7 @@
 import MeCab
 from transformers.models.whisper.english_normalizer import BasicTextNormalizer
 
+
 class TextNormalizer:
     def __init__(self):
         self.wakati = MeCab.Tagger("-Owakati")
