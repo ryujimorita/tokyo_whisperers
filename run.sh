@@ -1,5 +1,8 @@
 poetry run python3 main.py \
     --model_name_or_path="openai/whisper-tiny" \
+    --dataset_config_path="conf/dataset_config.yaml" \
+    --train_dataset_fraction=0.1 \
+    --eval_dataset_fraction=0.1 \
     --dataset_config_name="ja" \
     --language="japanese" \
     --max_steps="2" \

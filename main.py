@@ -37,16 +37,18 @@ def main():
     raw_datasets = DatasetDict()
     if training_args.do_train:
         raw_datasets["train"] = load_datasets_from_config(
-            "conf/dataset_config.yaml",
+            data_args.dataset_config_path,
             "train",
-            16000
+            16000,
+            data_args.train_dataset_fraction
         )
     
     if training_args.do_eval:
         raw_datasets["eval"] = load_datasets_from_config(
-            "conf/dataset_config.yaml", 
+            data_args.dataset_config_path, 
             "eval",
-            16000
+            16000,
+            data_args.eval_dataset_fraction
         )
 
     # load model and tokenizer

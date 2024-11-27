@@ -12,7 +12,7 @@ def load_streaming_dataset(dataset_name: str, dataset_config_name: str, split: s
     else:
         return load_dataset(dataset_name, dataset_config_name, split=split, streaming=True, **kwargs)
 
-def load_datasets_from_config(config_path: str, split: str, sampling_rate: Optional[int] = 16000) -> IterableDataset:
+def load_datasets_from_config(config_path: str, split: str, sampling_rate: Optional[int] = 16000, dataset_fraction: float = 1.0) -> IterableDataset:
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
     
@@ -26,8 +26,14 @@ def load_datasets_from_config(config_path: str, split: str, sampling_rate: Optio
             dataset_config['config'], 
             split=dataset_config['split'],
             trust_remote_code=True,
-            # streaming=False, # streaming not working? F
         )
+        
+        # apply dataset fraction if less than 1
+        if dataset_fraction < 1.0:
+            num_examples = len(dataset)
+            num_keep = int(num_examples * dataset_fraction)
+            dataset = dataset.shuffle(seed=42).select(range(num_keep))
+        
         dataset = dataset.cast_column("audio", Audio(sampling_rate))
         
         if dataset_config['text_column'] != "sentence":
@@ -38,6 +44,4 @@ def load_datasets_from_config(config_path: str, split: str, sampling_rate: Optio
         )
         all_datasets.append(dataset)
 
-    # TODO: could be trimmed datasets based on smallest length
-    # return interleave_datasets(all_datasets)
     return concatenate_datasets(all_datasets)

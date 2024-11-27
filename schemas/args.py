@@ -74,3 +74,15 @@ class DataTrainingArguments:
     language: str = field(default=None, metadata={"help": "Language for multilingual fine-tuning"})
     task: str = field(default="transcribe", metadata={"help": "Task, either `transcribe` or `translate`"})
     shuffle_buffer_size: Optional[int] = field(default=500, metadata={"help": "The number of examples to download before shuffling"})
+    dataset_config_path: str = field(
+        default="conf/dataset_config.yaml",
+        metadata={"help": "Path to the dataset configuration YAML file"}
+    )
+    train_dataset_fraction: float = field(
+        default=1.0,
+        metadata={"help": "Fraction of training dataset to use (between 0 and 1)"}
+    )
+    eval_dataset_fraction: float = field(
+        default=1.0,
+        metadata={"help": "Fraction of evaluation dataset to use (between 0 and 1)"}
+    )
