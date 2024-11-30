@@ -47,9 +47,14 @@ def load_datasets_from_config(
         dataset = load_dataset(
             dataset_config["name"],
             dataset_config["config"],
-            split=dataset_config["split"],
             trust_remote_code=True,
         )
+
+        # Combine the pre-split datasets into one so we can make our own custom split
+        if isinstance(dataset, dict):
+            print("Combining datasets")
+            combined_dataset = concatenate_datasets([dataset[key] for key in dataset.keys()])
+            dataset = combined_dataset
 
         # apply dataset fraction if less than 1
         if dataset_fraction < 1.0:
@@ -67,6 +72,25 @@ def load_datasets_from_config(
         dataset = dataset.remove_columns(
             set(dataset.features.keys()) - set(["audio", "sentence"])
         )
+
+        num_total_examples = len(dataset)
+        dataset = dataset.shuffle(seed=42)
+
+        # Create an 80:10:10 split for train, val, and test
+        dataset_train_split = dataset.train_test_split(
+            test_size=0.2, shuffle=False
+        )
+        dataset_val_test_split = dataset_train_split["test"].train_test_split(
+            test_size=0.5, shuffle=False
+        )
+        if dataset_config["split"] == "train":
+            dataset = dataset_train_split["train"]
+        elif dataset_config["split"] == "val":
+            dataset = dataset_val_test_split["train"]
+        elif dataset_config["split"] == "test":
+            dataset = dataset_val_test_split["test"]
+
+        print(f"Dataset {dataset_config['name']} has {num_total_examples} examples. We will use {len(dataset)} examples for the {dataset_config['split']} split.")
         all_datasets.append(dataset)
 
     return concatenate_datasets(all_datasets)
