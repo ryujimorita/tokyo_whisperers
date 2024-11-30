@@ -59,13 +59,22 @@ def main():
             data_args.train_dataset_fraction,
         )
 
-    if training_args.do_eval:
+    if training_args.do_train and training_args.do_eval:
         logger.info(f"Loading evaluation dataset from {data_args.dataset_config_path}")
-        raw_datasets["eval"] = load_datasets_from_config(
+        raw_datasets["val"] = load_datasets_from_config(
             data_args.dataset_config_path,
-            "eval",
+            "val",
             16000,
-            data_args.eval_dataset_fraction,
+            data_args.train_dataset_fraction,
+        )
+
+    if training_args.do_train == False and training_args.do_eval:
+        logger.info(f"Loading evaluation dataset from {data_args.dataset_config_path}")
+        raw_datasets["test"] = load_datasets_from_config(
+            data_args.dataset_config_path,
+            "test",
+            16000,
+            data_args.train_dataset_fraction,
         )
 
     # load model and tokenizer
@@ -148,10 +157,11 @@ def main():
     def is_audio_in_length_range(length):
         return min_input_length < length < max_input_length
 
-    vectorized_datasets["train"] = vectorized_datasets["train"].filter(
-        is_audio_in_length_range,
-        input_columns=["input_length"],
-    )
+    if training_args.do_train:
+        vectorized_datasets["train"] = vectorized_datasets["train"].filter(
+            is_audio_in_length_range,
+            input_columns=["input_length"],
+        )
 
     # init metrics calculator
     metrics_calculator = MetricsCalculator(
@@ -170,7 +180,7 @@ def main():
         model=model,
         args=training_args,
         train_dataset=vectorized_datasets["train"] if training_args.do_train else None,
-        eval_dataset=vectorized_datasets["eval"] if training_args.do_eval else None,
+        eval_dataset=vectorized_datasets["val"] if training_args.do_eval and training_args.do_train else vectorized_datasets["test"] if training_args.do_eval else None,
         tokenizer=feature_extractor,
         data_collator=data_collator,
         compute_metrics=(
@@ -230,21 +240,38 @@ def main():
     # eval
     results = {}
     if training_args.do_eval:
-        logger.info("*** Evaluate ***")
-        metrics = trainer.evaluate(
-            metric_key_prefix="eval",
-            max_length=training_args.generation_max_length,
-            num_beams=training_args.generation_num_beams,
-        )
+        if training_args.do_train:
+            logger.info("*** Validation ***")
+            metrics = trainer.evaluate(
+                metric_key_prefix="eval",
+                max_length=training_args.generation_max_length,
+                num_beams=training_args.generation_num_beams,
+            )
 
-        if data_args.max_eval_samples:
-            metrics["eval_samples"] = data_args.max_eval_samples
+            if data_args.max_eval_samples:
+                metrics["eval_samples"] = data_args.max_eval_samples
 
-        trainer.log_metrics("eval", metrics)
-        trainer.save_metrics("eval", metrics)
+            trainer.log_metrics("eval", metrics)
+            trainer.save_metrics("eval", metrics)
 
-        # add eval metrics to cache
-        mt.add_metrics(metrics, "eval")
+            # add eval metrics to cache
+            mt.add_metrics(metrics, "eval")
+        else:
+            logger.info("*** Test ***")
+            metrics = trainer.evaluate(
+                metric_key_prefix="eval",
+                max_length=training_args.generation_max_length,
+                num_beams=training_args.generation_num_beams,
+            )
+
+            if data_args.max_eval_samples:
+                metrics["eval_samples"] = data_args.max_eval_samples
+
+            trainer.log_metrics("eval", metrics)
+            trainer.save_metrics("eval", metrics)
+
+            # add eval metrics to cache
+            mt.add_metrics(metrics, "eval")
 
     kwargs = {
         "finetuned_from": model_args.model_name_or_path,
