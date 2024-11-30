@@ -5723,4 +5723,4 @@ Click = ">=7.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "7857d8e016c39e416f9b41f9ff0b11c8cef2fb5a68568484eed850c28f35046c"
+content-hash = "137dbdc7d44f27696f463488a9e5ed32103b22e60f21497a751d01ec7829886b"

@@ -1,6 +1,8 @@
 import os
 import sys
 import logging
+import warnings
+import pandas as pd
 from transformers import (
     HfArgumentParser,
     Seq2SeqTrainer,
@@ -26,6 +28,14 @@ from src.callbacks import ShuffleCallback, EpochProgressCallback
 from loguru import logger
 from src.metrics_cache import MetricsCache
 
+def _suppress_warnings():
+    warnings.filterwarnings("ignore", category=UserWarning)
+    logging.getLogger("transformers").setLevel(logging.ERROR)
+    logging.getLogger("datasets").setLevel(logging.ERROR)
+
+DEBUG = False
+if not DEBUG:
+    _suppress_warnings()
 
 def main():
     # parse arguments
@@ -217,6 +227,9 @@ def main():
         metrics = train_result.metrics
         if data_args.max_train_samples:
             metrics["train_samples"] = data_args.max_train_samples
+        
+        df = pd.DataFrame(trainer.state.log_history)
+        df.to_csv(os.path.join(training_args.output_dir, "train_history.csv"))
 
         # log metrics using trainer's logger
         trainer.log_metrics("train", metrics)
