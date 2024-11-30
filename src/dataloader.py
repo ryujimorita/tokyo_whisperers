@@ -43,7 +43,6 @@ def load_datasets_from_config(
     all_datasets = []
 
     for dataset_config in datasets_config:
-        print(dataset_config["name"])
         dataset = load_dataset(
             dataset_config["name"],
             dataset_config["config"],
@@ -52,7 +51,6 @@ def load_datasets_from_config(
 
         # Combine the pre-split datasets into one so we can make our own custom split
         if isinstance(dataset, dict):
-            print("Combining datasets")
             combined_dataset = concatenate_datasets([dataset[key] for key in dataset.keys()])
             dataset = combined_dataset
 
@@ -90,7 +88,6 @@ def load_datasets_from_config(
         elif dataset_config["split"] == "test":
             dataset = dataset_val_test_split["test"]
 
-        print(f"Dataset {dataset_config['name']} has {num_total_examples} examples. We will use {len(dataset)} examples for the {dataset_config['split']} split.")
         all_datasets.append(dataset)
 
     return concatenate_datasets(all_datasets)
