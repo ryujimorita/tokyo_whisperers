@@ -25,7 +25,8 @@ sh run.sh
 Follow these steps to set up the environment to run the code in google colab:
 
 ### 1. Clone the repository and navigate to the directory
-Run the following commands to clone the repository and change to its directory:
+- Clone the repository's main branch
+- Move to the directory:
 
 ```
 !git clone https://github.com/ryujimorita/tokyo_whisperers.git
@@ -37,23 +38,28 @@ Run the following commands to clone the repository and change to its directory:
 !git checkout -b <new-branch-name>
 ```
 
-### 3. Install Poetry (with the --pre argument)
-Use the commands below to install Poetry and set the PATH environment variable:
+### 3. Install Poetry (with the --pre argument) & install dependencies
+- Install Poetry (with --pre command)
+- Set the PATH environment variable for Poetry
+- Install required dependencies:
 ```
 !pip install -q --pre poetry
 !export PATH="/root/.local/bin:$PATH"
-```
-
-### 4. Install dependencies
-Run the following commands to install required dependencies:
-```
 !poetry run pip install cython setuptools wheel
 !poetry run pip install --no-use-pep517 youtokentome
 !poetry install --no-root
 ```
 
+### 4. Add Wandb credentials
+```
+!touch .env
+!echo $'WANDB_API_KEY="xxx"\nWANDB_PROJECT="tokyo_whisperers"' >.env
+!cat .env
+```
+Make sure to change `--wandb_run_name` argument in `run.sh` as well.
+
 ### 5. Execute the shell script
-Finally, run the provided shell script:
+Run the provided shell script:
 ```
 !sh run.sh
 ```
