@@ -1,7 +1,5 @@
 from transformers import TrainerCallback, TrainingArguments, TrainerState
-from typing import Dict, Optional
 from tqdm.auto import tqdm
-from transformers.trainer_utils import has_length
 from torch.utils.data import IterableDataset
 
 
