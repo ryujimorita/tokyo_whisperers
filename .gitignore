@@ -1,4 +1,5 @@
 output
+wandb
 *.aux
 *.log
 *.pdf

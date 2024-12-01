@@ -80,6 +80,10 @@ class ModelArguments:
 class DataTrainingArguments:
     """Arguments pertaining to what data we are going to input our model for training and eval."""
 
+    wandb_run_name: str = field(
+        default="whisper_finetune",
+        metadata={"help": "Name of the training run, used for wandb logging"},
+    )
     dataset_name: str = field(
         default=None,
         metadata={"help": "The name of the dataset to use (via the datasets library)."},
@@ -149,3 +153,19 @@ class DataTrainingArguments:
         default=1.0,
         metadata={"help": "Fraction of evaluation dataset to use (between 0 and 1)"},
     )
+    dropout: float = field(
+        default=0.1,
+        metadata={"help": "Dropout probability for all fully connected layers"},
+    )
+    attention_dropout: float = field(
+        default=0.1,
+        metadata={"help": "Dropout probability for attention weights"},
+    )
+    activation_dropout: float = field(
+        default=0.1,
+        metadata={"help": "Dropout probability for activation layers"},
+    )
+    # weight_decay: float = field(
+    #     default=0.01,
+    #     metadata={"help": "Weight decay for AdamW optimizer"},
+    # )

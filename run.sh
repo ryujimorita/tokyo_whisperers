@@ -1,6 +1,7 @@
 poetry run python3 main.py \
     --model_name_or_path="openai/whisper-tiny" \
     --dataset_config_path="conf/dataset_config.yaml" \
+    --wandb_run_name="test_run" \
     --train_dataset_fraction=0.3 \
     --eval_dataset_fraction=0.1 \
     --dataset_config_name="ja" \
@@ -22,9 +23,13 @@ poetry run python3 main.py \
 	--max_duration_in_seconds="30" \
 	--text_column_name="sentence" \
 	--freeze_feature_encoder="False" \
-	--report_to="tensorboard" \
+	--report_to="wandb" \
 	--metric_for_best_model="wer" \
 	--greater_is_better="False" \
+	--weight_decay="0.01" \
+	--dropout="0.1" \
+	--attention_dropout="0.1" \
+	--activation_dropout="0.1" \
 	--load_best_model_at_end \
 	--gradient_checkpointing \
 	--fp16 \
