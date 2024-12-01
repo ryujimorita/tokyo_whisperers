@@ -13,6 +13,8 @@ conda activate tokyo_whisperers
 poetry run pip install cython
 poetry run pip install --no-use-pep517 youtokentome
 poetry install
+cp .env.example .env
+# fill in the values in .env
 ```
 3. Run the script
 ```

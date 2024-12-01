@@ -51,7 +51,9 @@ def load_datasets_from_config(
 
         # Combine the pre-split datasets into one so we can make our own custom split
         if isinstance(dataset, dict):
-            combined_dataset = concatenate_datasets([dataset[key] for key in dataset.keys()])
+            combined_dataset = concatenate_datasets(
+                [dataset[key] for key in dataset.keys()]
+            )
             dataset = combined_dataset
 
         # apply dataset fraction if less than 1
@@ -75,9 +77,7 @@ def load_datasets_from_config(
         dataset = dataset.shuffle(seed=42)
 
         # Create an 80:10:10 split for train, val, and test
-        dataset_train_split = dataset.train_test_split(
-            test_size=0.2, shuffle=False
-        )
+        dataset_train_split = dataset.train_test_split(test_size=0.2, shuffle=False)
         dataset_val_test_split = dataset_train_split["test"].train_test_split(
             test_size=0.5, shuffle=False
         )

@@ -1,6 +1,10 @@
 import os
+from dotenv import load_dotenv
+import wandb
 import sys
 import logging
+import warnings
+import pandas as pd
 from transformers import (
     HfArgumentParser,
     Seq2SeqTrainer,
@@ -25,6 +29,28 @@ from src.metrics import MetricsCalculator, TextNormalizer
 from src.callbacks import ShuffleCallback, EpochProgressCallback
 from loguru import logger
 from src.metrics_cache import MetricsCache
+
+# load environment variables from .env file
+load_dotenv()
+
+# init wandb
+os.environ["WANDB_PROJECT"] = os.getenv(
+    "WANDB_PROJECT", "tokyo_whisperers"
+)  # TODO: can get from args?
+os.environ["WANDB_API_KEY"] = os.getenv("WANDB_API_KEY")
+
+wandb.login(key=os.getenv("WANDB_API_KEY"))
+
+
+def _suppress_warnings():
+    warnings.filterwarnings("ignore", category=UserWarning)
+    logging.getLogger("transformers").setLevel(logging.ERROR)
+    logging.getLogger("datasets").setLevel(logging.ERROR)
+
+
+DEBUG = False
+if not DEBUG:
+    _suppress_warnings()
 
 
 def main():
@@ -55,7 +81,7 @@ def main():
         raw_datasets["train"] = load_datasets_from_config(
             data_args.dataset_config_path,
             "train",
-            16000,
+            16000,  # whisper sampling rate
             data_args.train_dataset_fraction,
         )
 
@@ -81,6 +107,20 @@ def main():
     model.config.forced_decoder_ids = None
     model.config.suppress_tokens = []
     model.config.use_cache = False
+    # https://huggingface.co/docs/transformers/en/model_doc/whisper#transformers.WhisperConfig
+    model.config.dropout = (
+        training_args.dropout if hasattr(training_args, "dropout") else 0.1
+    )
+    model.config.attention_dropout = (
+        training_args.attention_dropout
+        if hasattr(training_args, "attention_dropout")
+        else 0.1
+    )
+    model.config.activation_dropout = (
+        training_args.activation_dropout
+        if hasattr(training_args, "activation_dropout")
+        else 0.1
+    )
 
     if model_args.freeze_feature_encoder:
         model.freeze_feature_encoder()
@@ -181,6 +221,25 @@ def main():
         callbacks=[ShuffleCallback()],
     )
 
+    # init wandb
+    wandb.init(
+        project=os.getenv("WANDB_PROJECT"),
+        name=data_args.wandb_run_name,
+        config={
+            "model_name": model_args.model_name_or_path,
+            "train_dataset_fraction": data_args.train_dataset_fraction,
+            "eval_dataset_fraction": data_args.eval_dataset_fraction,
+            "learning_rate": training_args.learning_rate,
+            "batch_size": training_args.per_device_train_batch_size,
+            "max_steps": training_args.max_steps,
+            "dataset_config_path": data_args.dataset_config_path,
+            "weight_decay": training_args.weight_decay,
+            "dropout": model.config.dropout,
+            "attention_dropout": model.config.attention_dropout,
+            "activation_dropout": model.config.activation_dropout,
+        },
+    )
+
     # training
     last_checkpoint = None
     if (
@@ -217,6 +276,9 @@ def main():
         metrics = train_result.metrics
         if data_args.max_train_samples:
             metrics["train_samples"] = data_args.max_train_samples
+
+        df = pd.DataFrame(trainer.state.log_history)
+        df.to_csv(os.path.join(training_args.output_dir, "train_history.csv"))
 
         # log metrics using trainer's logger
         trainer.log_metrics("train", metrics)
