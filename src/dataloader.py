@@ -1,3 +1,4 @@
+import os
 import yaml
 from typing import Optional
 from datasets import (
@@ -45,11 +46,30 @@ def load_datasets_from_config(
 
     logger.info(f"Loading {len(datasets_config)} datasets")
     for dataset_config in datasets_config:
-        dataset = load_dataset(
-            dataset_config["name"],
-            dataset_config["config"],
-            trust_remote_code=True,
-        )
+        try:
+            dataset = load_dataset(
+                dataset_config["name"],
+                dataset_config["config"],
+                trust_remote_code=True,
+            )
+        except ValueError as e:
+            # Some datasets, like ReazonSpeech may need an access token. Please set your access token in the HF_TOKEN environment variable.
+            try:
+                access_token = os.environ.get('HF_TOKEN')
+                dataset = load_dataset(
+                    dataset_config["name"],
+                    dataset_config["config"],
+                    trust_remote_code=True,
+                    token=access_token,
+                )
+            except:
+                logger.error(f"Failed to load dataset {dataset_config['name']}")
+                logger.error(f"Did you set the HF_TOKEN environment variable?")
+                raise
+        except:
+            logger.error(f"Failed to load dataset {dataset_config['name']}")
+            raise
+
 
         # Combine the pre-split datasets into one so we can make our own custom split
         if isinstance(dataset, dict):
