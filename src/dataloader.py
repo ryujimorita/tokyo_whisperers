@@ -79,15 +79,6 @@ def load_datasets_from_config(
             dataset = combined_dataset
 
         logger.info(f"Loaded {len(dataset)} examples from {dataset_config['name']}")
-        # apply dataset fraction if less than 1
-        if dataset_fraction < 1.0:
-            logger.info(f"Applying dataset fraction of {dataset_fraction}")
-            num_examples = len(dataset)
-            num_keep = int(num_examples * dataset_fraction)
-            dataset = dataset.shuffle(seed=42).select(
-                range(num_keep)
-            )  # TODO: make this seed refer to the seed argument in args.py
-
         dataset = dataset.cast_column("audio", Audio(sampling_rate))
 
         if dataset_config["text_column"] != "sentence":
@@ -112,6 +103,16 @@ def load_datasets_from_config(
             dataset = dataset_val_test_split["test"]
 
         logger.info(f"Split {len(dataset)} examples from {dataset_config['name']} for the {dataset_config['split']} split")
+
+        # apply dataset fraction if less than 1
+        if dataset_fraction < 1.0:
+            num_examples = len(dataset)
+            num_keep = int(num_examples * dataset_fraction)
+            dataset = dataset.shuffle(seed=42).select(
+                range(num_keep)
+            )  # TODO: make this seed refer to the seed argument in args.py
+            logger.info(f"Applying dataset fraction of {dataset_fraction} resulting in {num_keep} examples")
+
         all_datasets.append(dataset)
     # log how many total examples we have
     total_examples = sum([len(ds) for ds in all_datasets])
