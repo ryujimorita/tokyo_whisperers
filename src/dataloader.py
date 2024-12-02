@@ -7,6 +7,7 @@ from datasets import (
     load_dataset,
     concatenate_datasets,
 )
+from loguru import logger
 
 
 def load_streaming_dataset(
@@ -42,6 +43,7 @@ def load_datasets_from_config(
     datasets_config = config["dataset_config"][split]["datasets"]
     all_datasets = []
 
+    logger.info(f"Loading {len(datasets_config)} datasets")
     for dataset_config in datasets_config:
         dataset = load_dataset(
             dataset_config["name"],
@@ -56,8 +58,10 @@ def load_datasets_from_config(
             )
             dataset = combined_dataset
 
+        logger.info(f"Loaded {len(dataset)} examples from {dataset_config['name']}")
         # apply dataset fraction if less than 1
         if dataset_fraction < 1.0:
+            logger.info(f"Applying dataset fraction of {dataset_fraction}")
             num_examples = len(dataset)
             num_keep = int(num_examples * dataset_fraction)
             dataset = dataset.shuffle(seed=42).select(
@@ -73,7 +77,6 @@ def load_datasets_from_config(
             set(dataset.features.keys()) - set(["audio", "sentence"])
         )
 
-        num_total_examples = len(dataset)
         dataset = dataset.shuffle(seed=42)
 
         # Create an 80:10:10 split for train, val, and test
@@ -88,6 +91,10 @@ def load_datasets_from_config(
         elif dataset_config["split"] == "test":
             dataset = dataset_val_test_split["test"]
 
+        logger.info(f"Split {len(dataset)} examples from {dataset_config['name']} for the {dataset_config['split']} split")
         all_datasets.append(dataset)
+    # log how many total examples we have
+    total_examples = sum([len(ds) for ds in all_datasets])
+    logger.info(f"Concatenating all datasets to create the {split} split using {len(all_datasets)} datasets containing a total of {total_examples} examples")
 
     return concatenate_datasets(all_datasets)
