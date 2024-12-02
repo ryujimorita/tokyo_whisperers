@@ -302,9 +302,10 @@ def main():
         if data_args.max_train_samples:
             metrics["train_samples"] = data_args.max_train_samples
 
-        # Save the training log history as a CSV file in the user-defined output directory
+        # Save the training log history as a CSV file
         df = pd.DataFrame(trainer.state.log_history)
-        df.to_csv(os.path.join(training_args.output_dir, "train_history.csv"))
+        save_path = os.path.join(training_args.output_dir, "train_history.csv")
+        df.to_csv(save_path, index=False)
 
         # log metrics using trainer's logger
         trainer.log_metrics("train", metrics)
