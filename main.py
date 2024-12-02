@@ -42,7 +42,8 @@ os.environ["WANDB_API_KEY"] = os.getenv("WANDB_API_KEY")
 wandb.login(key=os.getenv("WANDB_API_KEY"))
 
 
-def _suppress_warnings():
+def _suppress_warnings() -> None:
+    """Suppresses specific warnings and logs for cleaner output."""
     warnings.filterwarnings("ignore", category=UserWarning)
     logging.getLogger("transformers").setLevel(logging.ERROR)
     logging.getLogger("datasets").setLevel(logging.ERROR)
@@ -102,7 +103,7 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path)
     model = AutoModelForSpeechSeq2Seq.from_pretrained(model_args.model_name_or_path)
 
-    # settup model configuration
+    # set up model configuration
     model.config.language = "japanese"
     model.config.forced_decoder_ids = None
     model.config.suppress_tokens = []
@@ -185,7 +186,9 @@ def main():
         data_args.min_duration_in_seconds * feature_extractor.sampling_rate
     )
 
-    def is_audio_in_length_range(length):
+    def is_audio_in_length_range(length:int) -> bool:
+        """Utility function for filtering training data. 
+        Checks if the input length is within the user-defined minimum and maximum range."""
         return min_input_length < length < max_input_length
 
     vectorized_datasets["train"] = vectorized_datasets["train"].filter(
@@ -277,6 +280,7 @@ def main():
         if data_args.max_train_samples:
             metrics["train_samples"] = data_args.max_train_samples
 
+        # Save the training log history as a CSV file in the user-defined output directory
         df = pd.DataFrame(trainer.state.log_history)
         df.to_csv(os.path.join(training_args.output_dir, "train_history.csv"))
 
