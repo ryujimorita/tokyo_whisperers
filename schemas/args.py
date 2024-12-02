@@ -153,6 +153,12 @@ class DataTrainingArguments:
         default=1.0,
         metadata={"help": "Fraction of evaluation dataset to use (between 0 and 1)"},
     )
+    do_augment: bool = field(
+        default=False,
+        metadata={
+            "help": "Apply data augmentation to the training set if specified"
+        },
+    )
     dropout: float = field(
         default=0.1,
         metadata={"help": "Dropout probability for all fully connected layers"},
