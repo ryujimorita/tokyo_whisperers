@@ -6,7 +6,7 @@ authors = ["mmbajo <markarjaybajo@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = ">=3.10,<=3.12"
 reazonspeech-nemo-asr = {git = "https://github.com/reazon-research/ReazonSpeech", subdirectory = "pkg/nemo-asr"}
 mecab-python3 = "^1.0.10"
 unidic-lite = "^1.0.8"
@@ -19,6 +19,7 @@ black = "^24.10.0"
 pandas = "^2.2.3"
 wandb = "^0.18.7"
 python-dotenv = "^1.0.1"
+audiomentations = "^0.37.0"
 
 
 
