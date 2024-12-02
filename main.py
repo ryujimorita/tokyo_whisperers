@@ -97,15 +97,15 @@ def main():
         )
 
     if data_args.do_augment:
-        logging.info(
-            "Training data size - before augmentation: ",
-            len(raw_datasets["train"]),
+        logger.info(
+            f"Training data size - before augmentation: {len(raw_datasets['train'])}"
         )
         # init data augmentator
         data_augmentator = DataAugmentator(data_args.audio_column_name)
         # augment training data
         augmented_raw_training_dataset = raw_datasets["train"].map(
-            data_augmentator.augment_dataset, desc="augment train dataset"
+            data_augmentator.augment_dataset, 
+            desc="Applying augmentation to the training dataset"
         )
 
         # combine original training data and augmented data
@@ -113,9 +113,8 @@ def main():
             [raw_datasets["train"], augmented_raw_training_dataset]
         )
 
-        logging.info(
-            "Training data size - after augmentation: ",
-            len(raw_datasets["train"]),
+        logger.info(
+            f"Training data size - after augmentation: {len(raw_datasets['train'])}"
         )
 
     # load model and tokenizer
