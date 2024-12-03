@@ -1,8 +1,10 @@
 import os
 import yaml
-from typing import Optional
+import math
+from typing import Optional, Tuple, Dict
 from datasets import (
     Audio,
+    Dataset,
     IterableDataset,
     interleave_datasets,
     load_dataset,
@@ -31,25 +33,62 @@ def load_streaming_dataset(
             dataset_name, dataset_config_name, split=split, streaming=True, **kwargs
         )
 
+def train_val_test_split(
+        dataset, 
+        split_ratio: Tuple[float, float, float] = (0.8, 0.1, 0.1)
+    ) -> Dict[str, Dataset]:
+    """
+    Utility function to perform a train-val-test split. 
+    Defaults to an 80:10:10 split but can be configured if needed.
+    """
+    # Check if the split ratio adds up to 1
+    assert math.isclose(sum(split_ratio), 1, rel_tol=1e-9), "Split_ratio doesn't add up to 100%. Check the values."
+
+    train_size, val_size, test_size = split_ratio
+
+    # Split dataset into train data and test data
+    dataset_train_test_split = dataset.train_test_split(
+        test_size=val_size + test_size, 
+        shuffle=False
+    )
+
+    # Split the test data into val data and test data
+    dataset_val_test_split = dataset_train_test_split["test"].train_test_split(
+        test_size=test_size / (val_size + test_size),  # => 0.5 for an 80:10:10 split
+        shuffle=False
+    )
+
+    res = {
+        "train": dataset_train_test_split["train"],
+        "eval": dataset_val_test_split["train"],
+        "test": dataset_val_test_split["test"]
+    }
+
+    # Log the sizes of each split
+    logger.info(f"Dataset split completed. Train size: {len(res['train'])}, "
+                f"Eval size: {len(res['eval'])}, Test size: {len(res['test'])}")
+
+    return res
 
 def load_datasets_from_config(
     config_path: str,
-    split: str,
+    data_type: str,
     sampling_rate: Optional[int] = 16000,
     dataset_fraction: float = 1.0,
-) -> IterableDataset:
+) -> Dataset:
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
-    datasets_config = config["dataset_config"][split]["datasets"]
+    all_datasets_config = config["dataset_config"][data_type]["datasets"]
     all_datasets = []
 
-    logger.info(f"Loading {len(datasets_config)} datasets")
-    for dataset_config in datasets_config:
+    logger.info(f"Loading {len(all_datasets_config)} datasets")
+    for dataset_config in all_datasets_config:
         try:
             dataset = load_dataset(
                 dataset_config["name"],
                 dataset_config["config"],
+                split=dataset_config["split"],
                 trust_remote_code=True,
             )
         except ValueError as e:
@@ -59,6 +98,7 @@ def load_datasets_from_config(
                 dataset = load_dataset(
                     dataset_config["name"],
                     dataset_config["config"],
+                    split=dataset_config["split"],
                     trust_remote_code=True,
                     token=access_token,
                 )
@@ -70,13 +110,13 @@ def load_datasets_from_config(
             logger.error(f"Failed to load dataset {dataset_config['name']}")
             raise
 
-
-        # Combine the pre-split datasets into one so we can make our own custom split
-        if isinstance(dataset, dict):
-            combined_dataset = concatenate_datasets(
-                [dataset[key] for key in dataset.keys()]
-            )
-            dataset = combined_dataset
+        # If split is needed, apply the split, retrieve the dataset matching the data type, and reinsert it into the dataset variable for merging later
+        if dataset_config["need_additional_split"]:
+            if len(dataset) > 0:
+                logger.info(f"Additional split is required because {dataset_config['name']} doesn't have train, validation, test split metadata in huggingface dataset.")
+                dataset = train_val_test_split(dataset)[data_type]
+            else:
+                logger.warning(f"Dataset {dataset_config['name']} is empty. Skipping additional split.")
 
         logger.info(f"Loaded {len(dataset)} examples from {dataset_config['name']}")
         dataset = dataset.cast_column("audio", Audio(sampling_rate))
@@ -88,34 +128,22 @@ def load_datasets_from_config(
             set(dataset.features.keys()) - set(["audio", "sentence"])
         )
 
+        # shuffle the dataset
         dataset = dataset.shuffle(seed=42)
-
-        # Create an 80:10:10 split for train, val, and test
-        dataset_train_split = dataset.train_test_split(test_size=0.2, shuffle=False)
-        dataset_val_test_split = dataset_train_split["test"].train_test_split(
-            test_size=0.5, shuffle=False
-        )
-        if dataset_config["split"] == "train":
-            dataset = dataset_train_split["train"]
-        elif dataset_config["split"] == "val":
-            dataset = dataset_val_test_split["train"]
-        elif dataset_config["split"] == "test":
-            dataset = dataset_val_test_split["test"]
-
-        logger.info(f"Split {len(dataset)} examples from {dataset_config['name']} for the {dataset_config['split']} split")
 
         # apply dataset fraction if less than 1
         if dataset_fraction < 1.0:
             num_examples = len(dataset)
             num_keep = int(num_examples * dataset_fraction)
-            dataset = dataset.shuffle(seed=42).select(
+            dataset = dataset.select(
                 range(num_keep)
             )  # TODO: make this seed refer to the seed argument in args.py
             logger.info(f"Applying dataset fraction of {dataset_fraction} resulting in {num_keep} examples")
 
         all_datasets.append(dataset)
+
     # log how many total examples we have
     total_examples = sum([len(ds) for ds in all_datasets])
-    logger.info(f"Concatenating all datasets to create the {split} split using {len(all_datasets)} datasets containing a total of {total_examples} examples")
+    logger.info(f"Concatenating all datasets to create the {data_type} split using {len(all_datasets)} datasets containing a total of {total_examples} examples")
 
     return concatenate_datasets(all_datasets)
