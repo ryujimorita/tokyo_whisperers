@@ -18,13 +18,14 @@ from transformers import (
 )
 from transformers.trainer_utils import get_last_checkpoint, is_main_process
 from transformers.utils import check_min_version, send_example_telemetry
-from datasets import DatasetDict
+from datasets import DatasetDict, concatenate_datasets
 from schemas import (
     ModelArguments,
     DataTrainingArguments,
     DataCollatorSpeechSeq2SeqWithPadding,
     LoRAArguments,
 )
+from src.augment import DataAugmentator
 from src.dataloader import load_datasets_from_config
 from src.metrics import MetricsCalculator, TextNormalizer
 from src.callbacks import ShuffleCallback, EpochProgressCallback
@@ -95,6 +96,27 @@ def main():
             "eval",
             16000,
             data_args.eval_dataset_fraction,
+        )
+
+    if data_args.do_augment:
+        logger.info(
+            f"Training data size - before augmentation: {len(raw_datasets['train'])}"
+        )
+        # init data augmentator
+        data_augmentator = DataAugmentator(data_args.audio_column_name)
+        # augment training data
+        augmented_raw_training_dataset = raw_datasets["train"].map(
+            data_augmentator.augment_dataset, 
+            desc="Applying augmentation to the training dataset"
+        )
+
+        # combine original training data and augmented data
+        raw_datasets["train"] = concatenate_datasets(
+            [raw_datasets["train"], augmented_raw_training_dataset]
+        )
+
+        logger.info(
+            f"Training data size - after augmentation: {len(raw_datasets['train'])}"
         )
 
     # load model and tokenizer
@@ -290,9 +312,10 @@ def main():
         if data_args.max_train_samples:
             metrics["train_samples"] = data_args.max_train_samples
 
-        # Save the training log history as a CSV file in the user-defined output directory
+        # Save the training log history as a CSV file
         df = pd.DataFrame(trainer.state.log_history)
-        df.to_csv(os.path.join(training_args.output_dir, "train_history.csv"))
+        save_path = os.path.join(training_args.output_dir, "train_history.csv")
+        df.to_csv(save_path, index=False)
 
         # log metrics using trainer's logger
         trainer.log_metrics("train", metrics)

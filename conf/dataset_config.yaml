@@ -25,7 +25,7 @@ dataset_config:
         text_column: "sentence"
       - name: "japanese-asr/ja_asr.jsut_basic5000"
         config: "default"
-        split: "eval"
+        split: "val"
         text_column: "transcription"
       - name: "google/fleurs"
         config: "ja_jp"
@@ -33,7 +33,7 @@ dataset_config:
         text_column: "raw_transcription"
       - name: "reazon-research/reazonspeech"
         config: "tiny"
-        split: "eval"
+        split: "val"
         text_column: "transcription"
   test:
     datasets:
