@@ -36,6 +36,5 @@ poetry run python3 main.py \
 	--overwrite_output_dir \
 	--do_train \
 	--do_eval \
-    --do_augment \
 	--predict_with_generate \
 	--use_auth_token
