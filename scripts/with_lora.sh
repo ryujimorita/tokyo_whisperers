@@ -1,14 +1,14 @@
 poetry run python3 main.py \
     --model_name_or_path="openai/whisper-tiny" \
     --dataset_config_path="conf/dataset_config.yaml" \
-    --wandb_run_name="mark_tiny_with_reg_full_dataset_fleurs_only_v2" \
-    --train_dataset_fraction=1 \
-    --eval_dataset_fraction=1 \
+    --wandb_run_name="with_lora_v1" \
+    --train_dataset_fraction=0.1 \
+    --eval_dataset_fraction=0.1 \
     --dataset_config_name="ja" \
     --language="japanese" \
-    --max_steps="10000" \
-    --output_dir="./output/reg_full_dataset_fleurs_only_v2" \
-	--save_total_limit="5" \
+    --max_steps="50" \
+    --output_dir="./output/with_lora" \
+    --save_total_limit="3" \
 	--per_device_train_batch_size="8" \
 	--per_device_eval_batch_size="8" \
     --gradient_accumulation_steps="2" \
@@ -38,4 +38,9 @@ poetry run python3 main.py \
 	--do_train \
 	--do_eval \
 	--predict_with_generate \
-	--use_auth_token
+	--use_auth_token \
+    --use_lora \
+    --lora_r="8" \
+    --lora_alpha="16" \
+    --lora_dropout="0.3" \
+    --lora_target_modules="q_proj,v_proj"
