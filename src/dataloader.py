@@ -74,7 +74,7 @@ def load_datasets_from_config(
         # Combine the pre-split datasets into one so we can make our own custom split
         if isinstance(dataset, dict):
             combined_dataset = concatenate_datasets(
-                [dataset[key] for key in dataset.keys()]
+                [dataset[key] for key in dataset.keys() if key != "invalidated" and key != "other" and key != "reported"]
             )
             dataset = combined_dataset
 
