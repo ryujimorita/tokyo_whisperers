@@ -76,7 +76,7 @@ class ModelArguments:
     )
     use_lora: bool = field(
         default=False,
-        metadata={"help": "Whether to use LoRA for parameter-efficient fine-tuning"}
+        metadata={"help": "Whether to use LoRA for parameter-efficient fine-tuning"},
     )
 
 
@@ -159,9 +159,7 @@ class DataTrainingArguments:
     )
     do_augment: bool = field(
         default=False,
-        metadata={
-            "help": "Apply data augmentation to the training set if specified"
-        },
+        metadata={"help": "Apply data augmentation to the training set if specified"},
     )
     dropout: float = field(
         default=0.1,

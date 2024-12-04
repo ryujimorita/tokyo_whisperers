@@ -22,9 +22,7 @@ class DataAugmentator:
                 ),
                 Gain(min_gain_in_db=-6, max_gain_in_db=6, p=0.1),
                 PitchShift(min_semitones=-4, max_semitones=4, p=0.2),
-                AddGaussianNoise(
-                    min_amplitude=0.005, max_amplitude=0.015, p=1.0
-                ),
+                AddGaussianNoise(min_amplitude=0.005, max_amplitude=0.015, p=1.0),
             ]
         )
 

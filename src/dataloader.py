@@ -21,7 +21,7 @@ def load_streaming_dataset(
                 dataset_config_name,
                 split=split_name,
                 streaming=True,
-                **kwargs
+                **kwargs,
             )
             for split_name in split.split("+")
         ]
@@ -55,7 +55,7 @@ def load_datasets_from_config(
         except ValueError as e:
             # Some datasets, like ReazonSpeech may need an access token. Please set your access token in the HF_TOKEN environment variable.
             try:
-                access_token = os.environ.get('HF_TOKEN')
+                access_token = os.environ.get("HF_TOKEN")
                 dataset = load_dataset(
                     dataset_config["name"],
                     dataset_config["config"],
@@ -70,11 +70,14 @@ def load_datasets_from_config(
             logger.error(f"Failed to load dataset {dataset_config['name']}")
             raise
 
-
         # Combine the pre-split datasets into one so we can make our own custom split
         if isinstance(dataset, dict):
             combined_dataset = concatenate_datasets(
-                [dataset[key] for key in dataset.keys() if key != "invalidated" and key != "other" and key != "reported"]
+                [
+                    dataset[key]
+                    for key in dataset.keys()
+                    if key != "invalidated" and key != "other" and key != "reported"
+                ]
             )
             dataset = combined_dataset
 
@@ -102,7 +105,9 @@ def load_datasets_from_config(
         elif dataset_config["split"] == "test":
             dataset = dataset_val_test_split["test"]
 
-        logger.info(f"Split {len(dataset)} examples from {dataset_config['name']} for the {dataset_config['split']} split")
+        logger.info(
+            f"Split {len(dataset)} examples from {dataset_config['name']} for the {dataset_config['split']} split"
+        )
 
         # apply dataset fraction if less than 1
         if dataset_fraction < 1.0:
@@ -111,12 +116,16 @@ def load_datasets_from_config(
             dataset = dataset.shuffle(seed=42).select(
                 range(num_keep)
             )  # TODO: make this seed refer to the seed argument in args.py
-            logger.info(f"Applying dataset fraction of {dataset_fraction} resulting in {num_keep} examples")
+            logger.info(
+                f"Applying dataset fraction of {dataset_fraction} resulting in {num_keep} examples"
+            )
 
         all_datasets.append(dataset)
     # log how many total examples we have
     total_examples = sum([len(ds) for ds in all_datasets])
-    logger.info(f"Concatenating all datasets to create the {split} split using {len(all_datasets)} datasets containing a total of {total_examples} examples")
+    logger.info(
+        f"Concatenating all datasets to create the {split} split using {len(all_datasets)} datasets containing a total of {total_examples} examples"
+    )
     ret = concatenate_datasets(all_datasets)
     logger.info(f"Columns: {ret.column_names}")
     return ret

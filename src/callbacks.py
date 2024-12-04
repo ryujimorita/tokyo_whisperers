@@ -1,4 +1,9 @@
-from transformers import TrainerCallback, TrainingArguments, TrainerState, TrainerControl
+from transformers import (
+    TrainerCallback,
+    TrainingArguments,
+    TrainerState,
+    TrainerControl,
+)
 from tqdm.auto import tqdm
 from torch.utils.data import IterableDataset
 import os
@@ -69,7 +74,8 @@ class ShuffleCallback(TrainerCallback):
     def on_epoch_begin(self, args, state, control, train_dataloader, **kwargs):
         if isinstance(train_dataloader.dataset, IterableDataset):
             train_dataloader.dataset.set_epoch(train_dataloader.dataset._epoch + 1)
-            
+
+
 class SavePeftModelCallback(TrainerCallback):
     def on_save(
         self,
