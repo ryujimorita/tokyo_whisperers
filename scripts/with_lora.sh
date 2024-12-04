@@ -9,30 +9,38 @@ poetry run python3 main.py \
     --max_steps="50" \
     --output_dir="./output/with_lora" \
     --save_total_limit="3" \
-    --per_device_train_batch_size="8" \
-    --per_device_eval_batch_size="8" \
+	--per_device_train_batch_size="8" \
+	--per_device_eval_batch_size="8" \
     --gradient_accumulation_steps="2" \
-    --logging_steps="5" \
-    --learning_rate="1e-3" \
-    --warmup_steps="0" \
-    --evaluation_strategy="steps" \
-    --eval_steps="5" \
-    --save_strategy="steps" \
-    --save_steps="5" \
+	--logging_steps="5" \
+	--learning_rate="1e-7" \
+	--warmup_steps="100" \
+	--evaluation_strategy="steps" \
+	--eval_steps="5" \
+	--save_strategy="steps" \
+	--save_steps="5" \
+	--generation_max_length="225" \
+	--length_column_name="input_length" \
+	--max_duration_in_seconds="30" \
+	--text_column_name="sentence" \
+	--freeze_feature_encoder="False" \
+	--report_to="wandb" \
+	--metric_for_best_model="wer" \
+	--greater_is_better="False" \
+	--weight_decay="0.3" \
+	--dropout="0.2" \
+	--attention_dropout="0.2" \
+	--activation_dropout="0.2" \
+	--load_best_model_at_end \
+	--gradient_checkpointing \
+	--fp16 \
+	--overwrite_output_dir \
+	--do_train \
+	--do_eval \
+	--predict_with_generate \
+	--use_auth_token \
     --use_lora \
     --lora_r="8" \
     --lora_alpha="16" \
     --lora_dropout="0.3" \
-    --lora_target_modules="q_proj,v_proj" \
-    --weight_decay="0.01" \
-    --dropout="0.1" \
-    --attention_dropout="0.1" \
-    --activation_dropout="0.1" \
-    --load_best_model_at_end \
-    --gradient_checkpointing \
-    --fp16 \
-    --overwrite_output_dir \
-    --do_train \
-    --do_eval \
-    --predict_with_generate \
-    --use_auth_token
+    --lora_target_modules="q_proj,v_proj"

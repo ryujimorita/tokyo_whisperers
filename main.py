@@ -15,6 +15,10 @@ from transformers import (
     AutoProcessor,
     AutoTokenizer,
     set_seed,
+    WhisperFeatureExtractor,
+    WhisperForConditionalGeneration,
+    WhisperProcessor,
+    WhisperTokenizer,
 )
 from transformers.trainer_utils import get_last_checkpoint, is_main_process
 from transformers.utils import check_min_version, send_example_telemetry
@@ -28,10 +32,10 @@ from schemas import (
 from src.augment import DataAugmentator
 from src.dataloader import load_datasets_from_config
 from src.metrics import MetricsCalculator, TextNormalizer
-from src.callbacks import ShuffleCallback, EpochProgressCallback
+from src.callbacks import ShuffleCallback, EpochProgressCallback, SavePeftModelCallback
 from loguru import logger
 from src.metrics_cache import MetricsCache
-from peft import get_peft_model
+from peft import get_peft_model, prepare_model_for_kbit_training
 
 # load environment variables from .env file
 load_dotenv()
@@ -121,11 +125,21 @@ def main():
 
     # load model and tokenizer
     config = AutoConfig.from_pretrained(model_args.model_name_or_path)
-    feature_extractor = AutoFeatureExtractor.from_pretrained(
-        model_args.model_name_or_path
+    feature_extractor = WhisperFeatureExtractor.from_pretrained(
+        model_args.model_name_or_path,
+        language="japanese",
+        task="transcribe",
     )
-    tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path)
-    model = AutoModelForSpeechSeq2Seq.from_pretrained(model_args.model_name_or_path)
+    tokenizer = WhisperTokenizer.from_pretrained(
+        model_args.model_name_or_path,
+        language="japanese",
+        task="transcribe",
+    )
+    if hasattr(model_args, "use_lora") and model_args.use_lora:
+        logger.info("Loading model in 8-bit mode...") # TODO: explore not using this shiz
+        model = WhisperForConditionalGeneration.from_pretrained(model_args.model_name_or_path, load_in_8bit=True, device_map="auto")
+    else:
+        model = WhisperForConditionalGeneration.from_pretrained(model_args.model_name_or_path)
 
     # set up model configuration
     model.config.language = "japanese"
@@ -147,19 +161,11 @@ def main():
         else 0.1
     )
 
-    if model_args.freeze_feature_encoder:
-        logger.info("Freezing feature encoder...")
-        model.freeze_feature_encoder()
-    if model_args.freeze_encoder:
-        logger.info("Freezing encoder...")
-        model.freeze_encoder()
-        model.model.encoder.gradient_checkpointing = False
-
     # init processor and data collator
     feature_extractor.save_pretrained(training_args.output_dir)
     tokenizer.save_pretrained(training_args.output_dir)
     config.save_pretrained(training_args.output_dir)
-    processor = AutoProcessor.from_pretrained(training_args.output_dir)
+    processor = WhisperProcessor.from_pretrained(training_args.output_dir, language="japanese", task="transcribe")
     data_collator = DataCollatorSpeechSeq2SeqWithPadding(
         processor=processor,
         decoder_start_token_id=model.config.decoder_start_token_id,
@@ -191,10 +197,22 @@ def main():
 
         batch["labels"] = tokenizer(input_str).input_ids
         return batch
+    
+    def prepare_dataset_for_lora(batch):
+        audio = batch["audio"]
+
+        # compute log-Mel input features from input audio array
+        batch["input_features"] = feature_extractor(audio["array"], sampling_rate=audio["sampling_rate"]).input_features[0]
+
+        # encode target text to label ids
+        batch["labels"] = tokenizer(batch["sentence"]).input_ids
+        batch["input_length"] = len(audio["array"])
+        return batch
 
     # process datasets
+    prep_fn = prepare_dataset_for_lora if hasattr(model_args, "use_lora") and model_args.use_lora else prepare_dataset
     vectorized_datasets = raw_datasets.map(
-        prepare_dataset,
+        prep_fn,
         remove_columns=next(iter(raw_datasets.values())).features.keys(),
     ).with_format("torch")
 
@@ -235,9 +253,25 @@ def main():
         
     if hasattr(model_args, "use_lora") and model_args.use_lora:
         logger.info("Applying LoRA to the model")
+        model = prepare_model_for_kbit_training(model)
+        def make_inputs_require_grad(module, input, output):
+            output.requires_grad_(True)
+        model.model.encoder.conv1.register_forward_hook(make_inputs_require_grad)
         lora_config = lora_args.create_config()
         model = get_peft_model(model, lora_config)
         model.print_trainable_parameters()
+        
+        # add some params in training args
+        training_args.remove_unused_columns = False
+        training_args.label_names = ["labels"]
+        
+    if model_args.freeze_feature_encoder:
+        logger.info("Freezing feature encoder...")
+        model.freeze_feature_encoder()
+    if model_args.freeze_encoder:
+        logger.info("Freezing encoder...")
+        model.freeze_encoder()
+        model.model.encoder.gradient_checkpointing = False
 
     # init trainer
     # TODO: add regularization
@@ -246,14 +280,14 @@ def main():
         args=training_args,
         train_dataset=vectorized_datasets["train"] if training_args.do_train else None,
         eval_dataset=vectorized_datasets["eval"] if training_args.do_eval else None,
-        tokenizer=feature_extractor,
+        tokenizer=processor.feature_extractor,
         data_collator=data_collator,
         compute_metrics=(
             metrics_calculator.compute_metrics
             if training_args.predict_with_generate
             else None
         ),
-        callbacks=[ShuffleCallback()],
+        callbacks=[ShuffleCallback(), SavePeftModelCallback()] if model_args.use_lora else [ShuffleCallback()],
     )
 
     # init wandb

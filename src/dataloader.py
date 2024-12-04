@@ -117,5 +117,6 @@ def load_datasets_from_config(
     # log how many total examples we have
     total_examples = sum([len(ds) for ds in all_datasets])
     logger.info(f"Concatenating all datasets to create the {split} split using {len(all_datasets)} datasets containing a total of {total_examples} examples")
-
-    return concatenate_datasets(all_datasets)
+    ret = concatenate_datasets(all_datasets)
+    logger.info(f"Columns: {ret.column_names}")
+    return ret

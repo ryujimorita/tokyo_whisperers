@@ -21,7 +21,7 @@ class LoRAArguments:
         default="q_proj,v_proj",
         metadata={"help": "Comma-separated list of target modules to apply LoRA"}
     )
-
+    # https://github.com/huggingface/peft/issues/1988 Nice bug mf
     def create_config(self):
         return LoraConfig(
             r=self.lora_r,
@@ -29,5 +29,5 @@ class LoRAArguments:
             target_modules=self.lora_target_modules.split(","),
             lora_dropout=self.lora_dropout,
             bias="none",
-            task_type="SEQ_2_SEQ_LM"
+            inference_mode=False,
         )

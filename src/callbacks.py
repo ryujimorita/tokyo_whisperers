@@ -1,6 +1,7 @@
-from transformers import TrainerCallback, TrainingArguments, TrainerState
+from transformers import TrainerCallback, TrainingArguments, TrainerState, TrainerControl
 from tqdm.auto import tqdm
 from torch.utils.data import IterableDataset
+import os
 
 
 class EpochProgressCallback(TrainerCallback):
@@ -68,3 +69,21 @@ class ShuffleCallback(TrainerCallback):
     def on_epoch_begin(self, args, state, control, train_dataloader, **kwargs):
         if isinstance(train_dataloader.dataset, IterableDataset):
             train_dataloader.dataset.set_epoch(train_dataloader.dataset._epoch + 1)
+            
+class SavePeftModelCallback(TrainerCallback):
+    def on_save(
+        self,
+        args: TrainingArguments,
+        state: TrainerState,
+        control: TrainerControl,
+        **kwargs,
+    ):
+        checkpoint_folder = os.path.join(args.output_dir, f"lora-{state.global_step}")
+
+        peft_model_path = os.path.join(checkpoint_folder, "adapter_model")
+        kwargs["model"].save_pretrained(peft_model_path)
+
+        pytorch_model_path = os.path.join(checkpoint_folder, "pytorch_model.bin")
+        if os.path.exists(pytorch_model_path):
+            os.remove(pytorch_model_path)
+        return control
