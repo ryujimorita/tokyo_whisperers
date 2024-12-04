@@ -5,73 +5,51 @@ dataset_config:
         config: "ja"
         split: "train"
         text_column: "sentence"
-        data_match_split: true
-        need_additional_split: false
       - name: "japanese-asr/ja_asr.jsut_basic5000"
         config: "default"
-        split: "test"
+        split: "train"
         text_column: "transcription"
-        data_match_split: false
-        need_additional_split: true
       - name: "google/fleurs"
         config: "ja_jp"
         split: "train"
         text_column: "raw_transcription"
-        data_match_split: true
-        need_additional_split: false
       - name: "reazon-research/reazonspeech"
         config: "tiny"
         split: "train"
         text_column: "transcription"
-        data_match_split: true
-        need_additional_split: true
   eval:
     datasets:
       - name: "mozilla-foundation/common_voice_11_0"
         config: "ja"
-        split: "validation"
+        split: "val"
         text_column: "sentence"
-        data_match_split: true
-        need_additional_split: false
       - name: "japanese-asr/ja_asr.jsut_basic5000"
         config: "default"
-        split: "test"
+        split: "eval"
         text_column: "transcription"
-        data_match_split: true
-        need_additional_split: true
       - name: "google/fleurs"
         config: "ja_jp"
-        split: "validation"
+        split: "val"
         text_column: "raw_transcription"
-        data_match_split: true
-        need_additional_split: false
       - name: "reazon-research/reazonspeech"
         config: "tiny"
-        split: "train"
+        split: "eval"
         text_column: "transcription"
-        data_match_split: false
-        need_additional_split: true
   test:
     datasets:
       - name: "mozilla-foundation/common_voice_11_0"
         config: "ja"
         split: "test"
         text_column: "sentence"
-        data_match_split: true
-        need_additional_split: false
       - name: "japanese-asr/ja_asr.jsut_basic5000"
         config: "default"
         split: "test"
         text_column: "transcription"
-        data_match_split: true
-        need_additional_split: true
       - name: "google/fleurs"
         config: "ja_jp"
         split: "test"
         text_column: "raw_transcription"
-        data_match_split: true
-        need_additional_split: false
 #      - name: "reazon-research/reazonspeech"
 #        config: "all"
-#        split: "train"
+#        split: "test"
 #        text_column: "transcription"
