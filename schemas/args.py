@@ -74,6 +74,10 @@ class ModelArguments:
     model_index_name: str = field(
         default=None, metadata={"help": "Pretty name for the model card."}
     )
+    use_lora: bool = field(
+        default=False,
+        metadata={"help": "Whether to use LoRA for parameter-efficient fine-tuning"}
+    )
 
 
 @dataclass

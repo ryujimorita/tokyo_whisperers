@@ -23,12 +23,14 @@ from schemas import (
     ModelArguments,
     DataTrainingArguments,
     DataCollatorSpeechSeq2SeqWithPadding,
+    LoRAArguments,
 )
 from src.dataloader import load_datasets_from_config
 from src.metrics import MetricsCalculator, TextNormalizer
 from src.callbacks import ShuffleCallback, EpochProgressCallback
 from loguru import logger
 from src.metrics_cache import MetricsCache
+from peft import get_peft_model
 
 # load environment variables from .env file
 load_dotenv()
@@ -57,15 +59,15 @@ if not DEBUG:
 def main():
     # parse arguments
     parser = HfArgumentParser(
-        (ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments)
+        (ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments, LoRAArguments)
     )
 
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
-        model_args, data_args, training_args = parser.parse_json_file(
+        model_args, data_args, training_args, lora_args = parser.parse_json_file(
             json_file=os.path.abspath(sys.argv[1])
         )
     else:
-        model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+        model_args, data_args, training_args, lora_args = parser.parse_args_into_dataclasses()
 
     # setting seed for reproducibility
     logger.info(f"Setting seed to {training_args.seed}")
@@ -124,8 +126,10 @@ def main():
     )
 
     if model_args.freeze_feature_encoder:
+        logger.info("Freezing feature encoder...")
         model.freeze_feature_encoder()
     if model_args.freeze_encoder:
+        logger.info("Freezing encoder...")
         model.freeze_encoder()
         model.model.encoder.gradient_checkpointing = False
 
@@ -206,6 +210,12 @@ def main():
         feature_extractor.save_pretrained(training_args.output_dir)
         tokenizer.save_pretrained(training_args.output_dir)
         config.save_pretrained(training_args.output_dir)
+        
+    if hasattr(model_args, "use_lora") and model_args.use_lora:
+        logger.info("Applying LoRA to the model")
+        lora_config = lora_args.create_config()
+        model = get_peft_model(model, lora_config)
+        model.print_trainable_parameters()
 
     # init trainer
     # TODO: add regularization
