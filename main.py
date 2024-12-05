@@ -33,6 +33,7 @@ from src.augment import DataAugmentator
 from src.dataloader import load_datasets_from_config
 from src.metrics import MetricsCalculator, TextNormalizer
 from src.callbacks import ShuffleCallback, EpochProgressCallback, SavePeftModelCallback
+from src.viz import Visualization
 from loguru import logger
 from src.metrics_cache import MetricsCache
 from peft import get_peft_model, prepare_model_for_kbit_training
@@ -425,6 +426,9 @@ def main():
         trainer.push_to_hub(**kwargs)
     else:
         trainer.create_model_card(**kwargs)
+
+    viz = Visualization(training_args.output_dir)
+    viz.save_all()
 
     return results
 
