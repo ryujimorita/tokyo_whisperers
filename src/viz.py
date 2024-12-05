@@ -60,10 +60,12 @@ class Visualization():
         
         # plot and label the training and validation loss values
         column_list = self.column_mapping[plot_type]
+        fig = plt.figure()
+        
         for column_name in column_list:
             # eval has too many NaN and it won't show up. this is messy but works
             temp = self.df[column_name].dropna()
-            fig = plt.figure()
+            
             plt.plot(temp.index, temp, label=column_name)
         
         # add in a title and axes labels
