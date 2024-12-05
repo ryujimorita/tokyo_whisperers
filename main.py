@@ -307,7 +307,7 @@ def main():
             else None
         ),
         callbacks=(
-            [ShuffleCallback(), SavePeftModelCallback()]
+            [ShuffleCallback(), SavePeftModelCallback(save_total_limit=training_args.save_total_limit)]
             if model_args.use_lora
             else [ShuffleCallback()]
         ),

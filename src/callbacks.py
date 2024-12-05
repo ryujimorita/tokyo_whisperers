@@ -7,6 +7,7 @@ from transformers import (
 from tqdm.auto import tqdm
 from torch.utils.data import IterableDataset
 import os
+import shutil
 
 
 class EpochProgressCallback(TrainerCallback):
@@ -77,6 +78,9 @@ class ShuffleCallback(TrainerCallback):
 
 
 class SavePeftModelCallback(TrainerCallback):
+    def __init__(self, save_total_limit: int = None):
+        self.save_total_limit = save_total_limit
+
     def on_save(
         self,
         args: TrainingArguments,
@@ -92,4 +96,21 @@ class SavePeftModelCallback(TrainerCallback):
         pytorch_model_path = os.path.join(checkpoint_folder, "pytorch_model.bin")
         if os.path.exists(pytorch_model_path):
             os.remove(pytorch_model_path)
+
+        # handle checkpoint limit if specified
+        if self.save_total_limit is not None:
+            checkpoints = [
+                f for f in os.listdir(args.output_dir) 
+                if f.startswith("lora-") and os.path.isdir(os.path.join(args.output_dir, f))
+            ]
+            checkpoints = sorted(checkpoints, key=lambda x: int(x.split("-")[1]))
+            
+            # rem old checkpoints if we exceed the limit
+            if len(checkpoints) > self.save_total_limit:
+                num_to_remove = len(checkpoints) - self.save_total_limit
+                removing = checkpoints[:num_to_remove]
+                for checkpoint in removing:
+                    full_path = os.path.join(args.output_dir, checkpoint)
+                    shutil.rmtree(full_path)
+        
         return control
