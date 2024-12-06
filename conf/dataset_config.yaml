@@ -1,7 +1,7 @@
 dataset_config:
   train:
     datasets:
-      - name: "mozilla-foundation/common_voice_17_0"
+      - name: "mozilla-foundation/common_voice_11_0"
         config: "ja"
         split: "train"
         text_column: "sentence"
@@ -19,7 +19,7 @@ dataset_config:
         text_column: "transcription"
   eval:
     datasets:
-      - name: "mozilla-foundation/common_voice_17_0"
+      - name: "mozilla-foundation/common_voice_11_0"
         config: "ja"
         split: "val"
         text_column: "sentence"
@@ -37,7 +37,7 @@ dataset_config:
         text_column: "transcription"
   test:
     datasets:
-      - name: "mozilla-foundation/common_voice_17_0"
+      - name: "mozilla-foundation/common_voice_11_0"
         config: "ja"
         split: "test"
         text_column: "sentence"
