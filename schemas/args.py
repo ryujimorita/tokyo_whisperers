@@ -173,6 +173,10 @@ class DataTrainingArguments:
         default=0.1,
         metadata={"help": "Dropout probability for activation layers"},
     )
+    apply_spec_augment: bool = field(
+        default=False,
+        metadata={"help": "Apply spec augment"},
+    )
     # weight_decay: float = field(
     #     default=0.01,
     #     metadata={"help": "Weight decay for AdamW optimizer"},

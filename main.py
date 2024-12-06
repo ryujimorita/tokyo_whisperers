@@ -169,6 +169,10 @@ def main():
         if hasattr(training_args, "activation_dropout")
         else 0.1
     )
+    # add spec augment. for now default parameters will be used.
+    model.config.apply_spec_augment = (
+        True if hasattr(training_args, "apply_spec_augment") else False
+    )
 
     # init processor and data collator
     feature_extractor.save_pretrained(training_args.output_dir)
@@ -330,6 +334,7 @@ def main():
             "dropout": model.config.dropout,
             "attention_dropout": model.config.attention_dropout,
             "activation_dropout": model.config.activation_dropout,
+            "apply_spec_augment": model.config.apply_spec_augment,
         },
     )
 
