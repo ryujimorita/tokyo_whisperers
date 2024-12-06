@@ -1,0 +1,32 @@
+poetry run python3 infer.py \
+    --model_name_or_path="output/test" \
+    --dataset_config_path="conf/dataset_config.yaml" \
+    --wandb_run_name="test_run" \
+    --train_dataset_fraction=0.3 \
+    --eval_dataset_fraction=0.1 \
+    --dataset_config_name="ja" \
+    --language="japanese" \
+    --max_steps="50" \
+    --output_dir="./output/test" \
+	--evaluation_strategy="steps" \
+	--eval_steps="5" \
+	--save_strategy="steps" \
+	--generation_max_length="225" \
+	--length_column_name="input_length" \
+	--max_duration_in_seconds="30" \
+	--text_column_name="sentence" \
+	--freeze_feature_encoder="False" \
+	--report_to="wandb" \
+	--metric_for_best_model="wer" \
+	--greater_is_better="False" \
+	--weight_decay="0.01" \
+	--dropout="0.1" \
+	--attention_dropout="0.1" \
+	--activation_dropout="0.1" \
+	--load_best_model_at_end \
+	--gradient_checkpointing \
+	--fp16 \
+	--overwrite_output_dir \
+	--do_eval \
+	--predict_with_generate \
+	--use_auth_token
