@@ -32,7 +32,8 @@ class Visualization():
 
         self.column_mapping = {
             "loss": ["train_loss", "eval_loss"],
-            "metrics": ["eval_wer", "eval_cer"]
+            "metrics": ["eval_wer", "eval_cer"],
+            "learning_rate": ["learning_rate"]
         }
 
     def _prepare_data(self):
@@ -51,7 +52,7 @@ class Visualization():
 
         return df
 
-    def save_image(self, plot_type:Literal["loss", "metrics"]):
+    def save_image(self, plot_type:Literal["loss", "metrics", "learning_rate"]):
         """Save given type of line chart"""
         defined_plot_type = set(self.column_mapping.keys())
 

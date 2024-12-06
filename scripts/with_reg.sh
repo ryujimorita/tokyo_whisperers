@@ -31,6 +31,7 @@ poetry run python3 main.py \
 	--dropout="0" \
 	--attention_dropout="0" \
 	--activation_dropout="0" \
+	--apply_spec_augment \
 	--load_best_model_at_end \
 	--gradient_checkpointing \
 	--fp16 \
