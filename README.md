@@ -10,7 +10,7 @@
 ```
 conda create -n "tokyo_whisperers" python=3.10
 conda activate tokyo_whisperers
-poetry run pip install cython
+poetry run pip install cython ipykernel
 poetry run pip install --no-use-pep517 youtokentome
 poetry install
 cp .env.example .env
@@ -45,7 +45,7 @@ Follow these steps to set up the environment to run the code in google colab:
 ```
 !pip install -q --pre poetry
 !export PATH="/root/.local/bin:$PATH"
-!poetry run pip install cython setuptools wheel
+!poetry run pip install cython setuptools wheel ipykernel
 !poetry run pip install --no-use-pep517 youtokentome
 !poetry install --no-root
 ```

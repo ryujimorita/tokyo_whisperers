@@ -1,24 +1,16 @@
-poetry run python3 main.py \
-    --model_name_or_path="openai/whisper-tiny" \
+poetry run python3 infer.py \
+    --model_name_or_path="output/test" \
     --dataset_config_path="conf/dataset_config.yaml" \
-    --wandb_run_name="with_reg_v2" \
-    --train_dataset_fraction=0.1 \
+    --wandb_run_name="test_run" \
+    --train_dataset_fraction=0.3 \
     --eval_dataset_fraction=0.1 \
     --dataset_config_name="ja" \
     --language="japanese" \
     --max_steps="50" \
-    --output_dir="./output/with_reg" \
-	--save_total_limit="3" \
-	--per_device_train_batch_size="8" \
-	--per_device_eval_batch_size="8" \
-    --gradient_accumulation_steps="2" \
-	--logging_steps="5" \
-	--learning_rate="1e-3" \
-	--warmup_steps="0" \
+    --output_dir="./output/test" \
 	--evaluation_strategy="steps" \
 	--eval_steps="5" \
 	--save_strategy="steps" \
-	--save_steps="5" \
 	--generation_max_length="225" \
 	--length_column_name="input_length" \
 	--max_duration_in_seconds="30" \
@@ -27,16 +19,14 @@ poetry run python3 main.py \
 	--report_to="wandb" \
 	--metric_for_best_model="wer" \
 	--greater_is_better="False" \
-	--weight_decay="1.5" \
-	--dropout="0" \
-	--attention_dropout="0" \
-	--activation_dropout="0" \
-	--apply_spec_augment \
+	--weight_decay="0.01" \
+	--dropout="0.1" \
+	--attention_dropout="0.1" \
+	--activation_dropout="0.1" \
 	--load_best_model_at_end \
 	--gradient_checkpointing \
 	--fp16 \
 	--overwrite_output_dir \
-	--do_train \
 	--do_eval \
 	--predict_with_generate \
 	--use_auth_token

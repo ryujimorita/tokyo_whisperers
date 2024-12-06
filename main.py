@@ -33,6 +33,7 @@ from src.augment import DataAugmentator
 from src.dataloader import load_datasets_from_config
 from src.metrics import MetricsCalculator, TextNormalizer
 from src.callbacks import ShuffleCallback, EpochProgressCallback, SavePeftModelCallback
+from src.viz import Visualization
 from loguru import logger
 from src.metrics_cache import MetricsCache
 from peft import get_peft_model, prepare_model_for_kbit_training
@@ -167,6 +168,10 @@ def main():
         training_args.activation_dropout
         if hasattr(training_args, "activation_dropout")
         else 0.1
+    )
+    # add spec augment. for now default parameters will be used.
+    model.config.apply_spec_augment = (
+        True if hasattr(training_args, "apply_spec_augment") else False
     )
 
     # init processor and data collator
@@ -329,6 +334,7 @@ def main():
             "dropout": model.config.dropout,
             "attention_dropout": model.config.attention_dropout,
             "activation_dropout": model.config.activation_dropout,
+            "apply_spec_augment": model.config.apply_spec_augment,
         },
     )
 
@@ -425,6 +431,9 @@ def main():
         trainer.push_to_hub(**kwargs)
     else:
         trainer.create_model_card(**kwargs)
+
+    viz = Visualization(training_args.output_dir)
+    viz.save_all()
 
     return results
 
