@@ -32,7 +32,7 @@ from schemas import (
 from src.augment import DataAugmentator
 from src.dataloader import load_datasets_from_config
 from src.metrics import MetricsCalculator, TextNormalizer
-from src.callbacks import ShuffleCallback, EpochProgressCallback, SavePeftModelCallback
+from src.callbacks import ShuffleCallback, EpochProgressCallback, SavePeftModelCallback, MetricsSavingCallback, SaveBestModelCallback
 from src.viz import Visualization
 from loguru import logger
 from src.metrics_cache import MetricsCache
@@ -311,11 +311,13 @@ def main():
             if training_args.predict_with_generate
             else None
         ),
-        callbacks=(
-            [ShuffleCallback(), SavePeftModelCallback(save_total_limit=training_args.save_total_limit)]
+        callbacks=[
+            # ShuffleCallback(),
+            SavePeftModelCallback(training_args.save_total_limit)
             if model_args.use_lora
-            else [ShuffleCallback()]
-        ),
+            else SaveBestModelCallback(training_args.save_total_limit),
+            MetricsSavingCallback(training_args.output_dir)
+        ],
     )
 
     # init wandb

@@ -8,6 +8,8 @@ from tqdm.auto import tqdm
 from torch.utils.data import IterableDataset
 import os
 import shutil
+import pandas as pd
+from typing import Dict
 
 
 class EpochProgressCallback(TrainerCallback):
@@ -72,14 +74,48 @@ class EpochProgressCallback(TrainerCallback):
 class ShuffleCallback(TrainerCallback):
     """Callback to handle dataset shuffling between epochs"""
 
-    def on_epoch_begin(self, args, state, control, train_dataloader, **kwargs):
-        if isinstance(train_dataloader.dataset, IterableDataset):
-            train_dataloader.dataset.set_epoch(train_dataloader.dataset._epoch + 1)
+    def on_epoch_begin(self, args, state, control, train_dataloader=None, **kwargs):
+        if train_dataloader is None:
+            return
+            
+        try:
+            if isinstance(train_dataloader.dataset, IterableDataset):
+                train_dataloader.dataset.set_epoch(state.epoch)
+            elif hasattr(train_dataloader.dataset, 'shuffle'):
+                train_dataloader.dataset.shuffle(seed=args.seed + state.epoch)
+                
+        except Exception as e:
+            logger.warning(f"Failed to shuffle dataset: {str(e)}")
+            
+        return control
 
 
 class SavePeftModelCallback(TrainerCallback):
     def __init__(self, save_total_limit: int = None):
         self.save_total_limit = save_total_limit
+        self.best_metric = float('inf')  # for WER, lower is better
+
+    def on_evaluate(
+        self,
+        args: TrainingArguments,
+        state: TrainerState,
+        control: TrainerControl,
+        metrics: Dict[str, float],
+        **kwargs,
+    ):
+        # check if we have a new best model based on WER
+        if metrics.get("eval_wer", float('inf')) < self.best_metric:
+            self.best_metric = metrics["eval_wer"]
+            
+            # save the best model
+            best_model_path = os.path.join(args.output_dir, "best_lora_model")
+            if os.path.exists(best_model_path):
+                shutil.rmtree(best_model_path)
+            
+            kwargs["model"].save_pretrained(best_model_path)
+            
+            # log the new best metric
+            print(f"New best model saved with WER: {self.best_metric}")
 
     def on_save(
         self,
@@ -105,7 +141,6 @@ class SavePeftModelCallback(TrainerCallback):
             ]
             checkpoints = sorted(checkpoints, key=lambda x: int(x.split("-")[1]))
             
-            # rem old checkpoints if we exceed the limit
             if len(checkpoints) > self.save_total_limit:
                 num_to_remove = len(checkpoints) - self.save_total_limit
                 removing = checkpoints[:num_to_remove]
@@ -114,3 +149,71 @@ class SavePeftModelCallback(TrainerCallback):
                     shutil.rmtree(full_path)
         
         return control
+
+
+class SaveBestModelCallback(TrainerCallback):
+    def __init__(self, save_total_limit: int = None):
+        self.save_total_limit = save_total_limit
+        self.best_metric = float('inf')  # for WER, lower is better
+
+    def on_evaluate(
+        self,
+        args: TrainingArguments,
+        state: TrainerState,
+        control: TrainerControl,
+        metrics: Dict[str, float],
+        **kwargs,
+    ):
+        # check if we have a new best model based on WER
+        if metrics.get("eval_wer", float('inf')) < self.best_metric:
+            self.best_metric = metrics["eval_wer"]
+            
+            # save the best model
+            best_model_path = os.path.join(args.output_dir, "best_model")
+            if os.path.exists(best_model_path):
+                shutil.rmtree(best_model_path)
+            
+            kwargs["model"].save_pretrained(best_model_path)
+            
+            # save the tokenizer if it exists
+            if "tokenizer" in kwargs:
+                kwargs["tokenizer"].save_pretrained(best_model_path)
+            
+            print(f"New best model saved with WER: {self.best_metric}")
+
+    def on_save(
+        self,
+        args: TrainingArguments,
+        state: TrainerState,
+        control: TrainerControl,
+        **kwargs,
+    ):
+        if self.save_total_limit is not None:
+            checkpoints = [
+                f for f in os.listdir(args.output_dir) 
+                if f.startswith("checkpoint-") and os.path.isdir(os.path.join(args.output_dir, f))
+            ]
+            checkpoints = sorted(checkpoints, key=lambda x: int(x.split("-")[1]))
+            
+            if len(checkpoints) > self.save_total_limit:
+                num_to_remove = len(checkpoints) - self.save_total_limit
+                removing = checkpoints[:num_to_remove]
+                for checkpoint in removing:
+                    full_path = os.path.join(args.output_dir, checkpoint)
+                    shutil.rmtree(full_path)
+        
+        return control
+
+
+class MetricsSavingCallback(TrainerCallback):
+    def __init__(self, output_dir: str):
+        self.output_dir = output_dir
+        self.log_history = []
+
+    def on_log(self, args, state, control, logs=None, **kwargs):
+        if state.is_world_process_zero and logs is not None:
+            self.log_history.append(logs)
+            # save to CSV after each log
+            df = pd.DataFrame(self.log_history)
+            save_path = os.path.join(self.output_dir, "training_metrics.csv")
+            df.to_csv(save_path, index=False)

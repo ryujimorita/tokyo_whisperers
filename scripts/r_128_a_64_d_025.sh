@@ -1,19 +1,19 @@
 poetry run python3 main.py \
     --model_name_or_path="openai/whisper-tiny" \
-    --dataset_config_path="conf/dataset_config.yaml" \
-    --wandb_run_name="r_64_a_16_d_0.3" \
+    --dataset_config_path="conf/dataset_config_no_cv.yaml" \
+    --wandb_run_name="r_128_a_64_d_0.25" \
     --train_dataset_fraction=1 \
-    --eval_dataset_fraction=1 \
+    --eval_dataset_fraction=0.1 \
     --dataset_config_name="ja" \
     --language="japanese" \
     --max_steps="10000" \
-    --output_dir="./output/with_lora" \
+    --output_dir="./output/r_128_a_64_d_025" \
     --save_total_limit="3" \
 	--per_device_train_batch_size="8" \
 	--per_device_eval_batch_size="8" \
     --gradient_accumulation_steps="2" \
 	--logging_steps="5" \
-	--learning_rate="1e-7" \
+	--learning_rate="1e-4" \
 	--warmup_steps="100" \
 	--evaluation_strategy="steps" \
 	--eval_steps="5" \
@@ -31,7 +31,6 @@ poetry run python3 main.py \
 	--dropout="0.2" \
 	--attention_dropout="0.2" \
 	--activation_dropout="0.2" \
-	--apply_spec_augment \
 	--load_best_model_at_end \
 	--gradient_checkpointing \
 	--fp16 \
@@ -41,7 +40,7 @@ poetry run python3 main.py \
 	--predict_with_generate \
 	--use_auth_token \
     --use_lora \
-    --lora_r="64" \
-    --lora_alpha="16" \
-    --lora_dropout="0.3" \
+    --lora_r="128" \
+    --lora_alpha="64" \
+    --lora_dropout="0.25" \
     --lora_target_modules="q_proj,v_proj"
