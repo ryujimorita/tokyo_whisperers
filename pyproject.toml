@@ -8,6 +8,9 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = ">=3.10,<=3.12"
 reazonspeech-nemo-asr = {git = "https://github.com/reazon-research/ReazonSpeech", subdirectory = "pkg/nemo-asr"}
+reazonspeech-k2-asr = {git = "https://github.com/reazon-research/ReazonSpeech", subdirectory = "pkg/k2-asr"}
+reazonspeech-espnet-oneseg = {git = "https://github.com/reazon-research/ReazonSpeech", subdirectory = "pkg/espnet-oneseg"}
+reazonspeech-espnet-asr = {git = "https://github.com/reazon-research/ReazonSpeech", subdirectory = "pkg/espnet-asr"}
 mecab-python3 = "^1.0.10"
 unidic-lite = "^1.0.8"
 evaluate = "^0.4.3"
@@ -23,6 +26,8 @@ peft = "^0.13.2"
 audiomentations = "^0.37.0"
 bitsandbytes = "^0.44.1"
 accelerate = "^1.1.1"
+onnxruntime-gpu = "^1.20.1"
+sherpa-onnx = "^1.10.33"
 
 
 

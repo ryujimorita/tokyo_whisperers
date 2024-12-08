@@ -1,5 +1,6 @@
 output
 wandb
+results
 *.aux
 *.log
 *.pdf
