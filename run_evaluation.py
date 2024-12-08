@@ -20,9 +20,9 @@ from loguru import logger
 import numpy as np
 from dataclasses import dataclass
 
-from reazonspeech.k2.asr import load_model as load_k2_model, transcribe as k2_transcribe, audio_from_array as k2_audio_from_array
-from reazonspeech.nemo.asr import load_model as load_nemo_model, transcribe as nemo_transcribe, audio_from_array as nemo_audio_from_array
-from reazonspeech.espnet.asr import load_model as load_espnet_model, transcribe as espnet_transcribe, audio_from_array as espnet_audio_from_array
+from reazonspeech.k2.asr import load_model as load_k2_model, transcribe as k2_transcribe, audio_from_numpy as k2_audio_from_array
+from reazonspeech.nemo.asr import load_model as load_nemo_model, transcribe as nemo_transcribe, audio_from_numpy as nemo_audio_from_array
+from reazonspeech.espnet.asr import load_model as load_espnet_model, transcribe as espnet_transcribe, audio_from_numpy as espnet_audio_from_array
 # from reazonspeech.espnet.oneseg import load_model as load_oneseg_model, transcribe as oneseg_transcribe, audio_from_array as oneseg_audio_from_array
 
 MODEL_TYPES = {
@@ -113,13 +113,13 @@ def load_reazonspeech_model(model_type):
     logger.info(f"Loading ReazonSpeech model type: {model_type}")
     
     if model_type == "k2":
-        return load_k2_model(), k2_transcribe, k2_audio_from_array
+        return load_k2_model("cuda"), k2_transcribe, k2_audio_from_array
     elif model_type == "nemo":
-        return load_nemo_model(), nemo_transcribe, nemo_audio_from_array
+        return load_nemo_model("cuda"), nemo_transcribe, nemo_audio_from_array
     elif model_type == "espnet":
-        return load_espnet_model(), espnet_transcribe, espnet_audio_from_array
+        return load_espnet_model("cuda"), espnet_transcribe, espnet_audio_from_array
     elif model_type == "oneseg":
-        return load_oneseg_model(), oneseg_transcribe, oneseg_audio_from_array
+        return load_oneseg_model("cuda"), oneseg_transcribe, oneseg_audio_from_array
     else:
         raise ValueError(f"Unknown ReazonSpeech model type: {model_type}")
 
