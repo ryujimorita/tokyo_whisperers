@@ -13,6 +13,7 @@ conda activate tokyo_whisperers
 poetry run pip install cython ipykernel
 poetry run pip install --no-use-pep517 youtokentome
 poetry install
+poetry run pip install sherpa-onnx==1.10.16+cuda -f https://k2-fsa.github.io/sherpa/onnx/cuda.html
 cp .env.example .env
 # fill in the values in .env
 ```
