@@ -52,3 +52,22 @@ class MetricsCalculator:
         cer = 100 * self.cer_metric.compute(predictions=pred_str, references=label_str)
 
         return {"wer": wer, "cer": cer}
+        
+    def compute_metrics_from_predictions(self, predictions: list[str], references: list[str]):
+        """Compute metrics directly from text predictions and references.
+        
+        Args:
+            predictions: List of predicted transcripts
+            references: List of reference transcripts
+            
+        Returns:
+            dict: Dictionary containing WER and CER metrics
+        """
+        if self.do_normalize_eval:
+            predictions = [self.normalizer(pred) for pred in predictions]
+            references = [self.normalizer(ref) for ref in references]
+            
+        wer = 100 * self.wer_metric.compute(predictions=predictions, references=references)
+        cer = 100 * self.cer_metric.compute(predictions=predictions, references=references)
+        
+        return {"wer": wer, "cer": cer}
