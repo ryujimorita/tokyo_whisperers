@@ -20,9 +20,9 @@ from loguru import logger
 import numpy as np
 from dataclasses import dataclass
 
-from reazonspeech.k2.asr import load_model as load_k2_model, transcribe as k2_transcribe, audio_from_array as k2_audio_from_array
-from reazonspeech.nemo.asr import load_model as load_nemo_model, transcribe as nemo_transcribe, audio_from_array as nemo_audio_from_array
-from reazonspeech.espnet.asr import load_model as load_espnet_model, transcribe as espnet_transcribe, audio_from_array as espnet_audio_from_array
+from reazonspeech.k2.asr import load_model as load_k2_model, transcribe as k2_transcribe, audio_from_numpy as k2_audio_from_array
+from reazonspeech.nemo.asr import load_model as load_nemo_model, transcribe as nemo_transcribe, audio_from_numpy as nemo_audio_from_array
+from reazonspeech.espnet.asr import load_model as load_espnet_model, transcribe as espnet_transcribe, audio_from_tensor as espnet_audio_from_array
 # from reazonspeech.espnet.oneseg import load_model as load_oneseg_model, transcribe as oneseg_transcribe, audio_from_array as oneseg_audio_from_array
 
 MODEL_TYPES = {
@@ -32,6 +32,10 @@ MODEL_TYPES = {
     "espnet": "reazonspeech-espnet",
     # "oneseg": "reazonspeech-oneseg"
 }
+
+# override reazonspeech.espnet.asr.audio_from_tensor lmao bc it's broken
+def espnet_audio_from_array(arr, samplerate):
+    return k2_audio_from_array(arr, samplerate)
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -113,13 +117,13 @@ def load_reazonspeech_model(model_type):
     logger.info(f"Loading ReazonSpeech model type: {model_type}")
     
     if model_type == "k2":
-        return load_k2_model(), k2_transcribe, k2_audio_from_array
+        return load_k2_model("cuda"), k2_transcribe, k2_audio_from_array
     elif model_type == "nemo":
-        return load_nemo_model(), nemo_transcribe, nemo_audio_from_array
+        return load_nemo_model("cuda"), nemo_transcribe, nemo_audio_from_array
     elif model_type == "espnet":
-        return load_espnet_model(), espnet_transcribe, espnet_audio_from_array
-    elif model_type == "oneseg":
-        return load_oneseg_model(), oneseg_transcribe, oneseg_audio_from_array
+        return load_espnet_model("cpu"), espnet_transcribe, espnet_audio_from_array
+    # elif model_type == "oneseg":
+    #     return load_oneseg_model("cuda"), oneseg_transcribe, oneseg_audio_from_array
     else:
         raise ValueError(f"Unknown ReazonSpeech model type: {model_type}")
 
@@ -180,7 +184,7 @@ def run_whisper_inference(args, model, processor, feature_extractor, tokenizer, 
             
     return predictions, references
 
-def run_reazonspeech_inference(model, transcribe_fn, test_dataset):
+def run_reazonspeech_inference(model, transcribe_fn, audio_from_array_fn, test_dataset):
     """Run inference using ReazonSpeech model."""
     predictions = []
     references = []
@@ -193,10 +197,16 @@ def run_reazonspeech_inference(model, transcribe_fn, test_dataset):
         if audio_array.dtype != np.float32:
             audio_array = audio_array.astype(np.float32)
         
-        audio_input = k2_audio_from_array(audio_array, sampling_rate) # lmao assume same interface for all models
-        
         try:
-            result = transcribe_fn(model, audio_input)
+            # For ESPNet, keep everything on CPU
+            if audio_from_array_fn == espnet_audio_from_array:
+                # audio_tensor = torch.from_numpy(audio_array)  # Keep on CPU
+                audio_input = audio_from_array_fn(audio_array, sampling_rate)
+                result = transcribe_fn(model, audio_input)
+            else:
+                audio_input = audio_from_array_fn(audio_array, sampling_rate)
+                result = transcribe_fn(model, audio_input)
+            
             prediction = result.text
         except Exception as e:
             logger.error(f"Error transcribing audio {i}: {str(e)}")
@@ -236,9 +246,9 @@ def main():
             args, model, processor, feature_extractor, tokenizer, test_dataset
         )
     else:
-        model, transcribe_fn, audio_from_array = load_reazonspeech_model(args.model_type)
+        model, transcribe_fn, audio_from_array_fn = load_reazonspeech_model(args.model_type)
         predictions, references = run_reazonspeech_inference(
-            model, transcribe_fn, test_dataset
+            model, transcribe_fn, audio_from_array_fn, test_dataset
         )
     
     logger.info("\nCalculating metrics...")
