@@ -33,7 +33,7 @@ docker build -t tokyo_whisperers .
 docker run -it \       
   --platform linux/amd64 \
   --mount type=bind,src=$(pwd),dst=/app \
-  tokyo_whisperpers bash
+  tokyo_whisperers bash
 ```
 4. In the container terminal, execute the script
 ```
