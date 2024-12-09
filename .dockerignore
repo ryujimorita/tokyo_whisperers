@@ -1,0 +1,12 @@
+# virtual environment
+.venv
+venv
+
+# git
+.git
+
+# pycache
+__pycache__
+
+# ReazonSpeech
+ReazonSpeech/

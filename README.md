@@ -22,6 +22,24 @@ cp .env.example .env
 sh run.sh
 ```
 
+## Local Setup (Mac Silicon)
+1. Clone the repository and navigate to its root directory:
+2. Build the Docker image:
+```
+docker build -t tokyo_whisperers .
+```
+3. Run following command to start the contrainer, mounting the local volume
+```
+docker run -it \       
+  --platform linux/amd64 \
+  --mount type=bind,src=$(pwd),dst=/app \
+  tokyo_whisperpers bash
+```
+4. In the container terminal, execute the script
+```
+sh run.sh
+```
+
 ## Google Colab Setup
 Follow these steps to set up the environment to run the code in google colab:
 
