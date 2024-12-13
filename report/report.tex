@@ -7,6 +7,17 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{subcaption}
+\usepackage[utf8]{inputenc}
+\usepackage{CJKutf8}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{adjustbox}
+\usepackage{xeCJK}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{natbib}
 
 % Include other packages here, before hyperref.
 
@@ -24,60 +35,162 @@
 \ifcvprfinal\pagestyle{empty}\fi
 \begin{document}
 
-%%%%%%%%% TITLE
-\title{Project Report : CS 7643}
+\bibliographystyle{ieee_fullname}
 
-\author{First Author\\
-Institution1\\
-Institution1 address\\
-{\tt\small firstauthor@i1.org}
+%%%%%%%%% TITLE
+\title{Efficient Adaptation of Multilingual Models for Japanese ASR}
+
+\author{
+Mark Bajo \quad Haruka Fukukawa \quad Ryuji Morita \quad Yuma Ogasawara\\
+Georgia Institute of Technology\\
+\tt\small mbajo3@gatech.edu, hfukukawa3@gatech.edu, ryuji\_morita@gatech.edu, yogasawara3@gatech.edu\\
+}
 % For a paper whose authors are all at the same institution,
 % omit the following lines up until the closing ``}''.
 % Additional authors and addresses can be added with ``\and'',
 % just like the second author.
 % To save space, use either the email address or home page, not both
-\and
-Second Author\\
-Institution2\\
-First line of institution2 address\\
-{\tt\small secondauthor@i2.org}
-}
 
 \maketitle
 %\thispagestyle{empty}
 
 %%%%%%%%% ABSTRACT
 \begin{abstract}
-   The ABSTRACT is to be in fully-justified italicized text, at the top
-   of the left-hand column, below the author and affiliation
-   information. Use the word ``Abstract'' as the title, in 12-point
-   Times, boldface type, centered relative to the column, initially
-   capitalized. The abstract is to be in 10-point, single-spaced type.
-   Leave two blank lines after the Abstract, then begin the main text.
-   Look at previous CVPR abstracts to get a feel for style and length. 
-   The abstract section should contain a brief summary of your work that
-   includes the problem statement, proposed solution and results.
+This study explores fine-tuning multilingual ASR (Automatic Speech Recognition) models, specifically OpenAI’s Whisper-Tiny, to improve performance in Japanese. While multilingual models like Whisper offer versatility, they often lack precision in specific languages. Conversely, monolingual models like ReazonSpeech excel in language-specific tasks but are less adaptable. Using Japanese-specific datasets and Low-Rank Adaptation (LoRA) along with end-to-end(E2E) training, we fine-tuned Whisper-Tiny to bridge this gap. Our results show that fine-tuning reduced Whisper-Tiny’s Character Error Rate (CER) from 32.7 to 20.8 with LoRA and to 14.7 with end-to-end fine-tuning, surpassing Whisper-Base’s CER of 20.2. However, challenges with domain-specific terms remain, highlighting the need for specialized datasets. These findings demonstrate that fine-tuning multilingual models can achieve strong language-specific performance while retaining their flexibility. This approach provides a scalable solution for improving ASR in resource-constrained environments and languages with complex writing systems like Japanese.
 \end{abstract}
 
 %%%%%%%%% BODY TEXT
 \section{Introduction/Background/Motivation}
 
-(5 points) What did you try to do? What problem did you try to solve? Articulate your objectives using absolutely no jargon. 
+Our project aims to improve Japanese ASR by fine-tuning a multilingual model, originally trained mainly on English, using Japanese texts to enhance its performance. In the Japanese ASR domain, models like ReazonSpeech, which are specifically trained on Japanese corpora\cite{huggingfaceReazonspeechDatasets}, excel in capturing language-specific nuances and demonstrate strong baseline performance. However, these models lack versatility across different languages.
 
-(5 points) How is it done today, and what are the limits of current practice?
 
-(5 points) Who cares? If you are successful, what difference will it make? 
+Conversely, OpenAI's Whisper model is trained on multiple languages\cite{radford2023robust}, offering broad applicability but often lacking deep specialization in any single language\cite{githubWhispermodelcardmdMain}. This presents a significant trade-off in the ASR landscape: while multilingual models provide versatility across languages, they may not match the precision of monolingual models for specific languages like Japanese. This is primarily because multilingual models have reduced per-language capacity compared to monolingual models of the same size. However, fine-tuning multilingual models like Whisper with additional language-specific data, such as Japanese, can significantly enhance their performance by increasing accuracy and adapting to linguistic nuances. This is supported by Whisper's demonstrated ability to improve performance on multilingual benchmarks like Multilingual LibriSpeech (MLS), where it outperformed other models such as XLS-R and mSLAM in a zero-shot setting, indicating that additional language-specific fine-tuning could further enhance its capabilities for specific languages\cite{radford2023robust}.
 
-(5 points) What data did you use? Provide details about your data, specifically choose the most important aspects of your data mentioned \href{https://arxiv.org/abs/1803.09010}{here}. You don’t have to choose all of them, just the most relevant.
-%-------------------------------------------------------------------------
-%------------------------------------------------------------------------
+
+Our approach involves using LoRA \cite{huLoRALowRankAdaptation2021} alongside E2E fine-tuning of the Whisper model with a Japanese-specific dataset. LoRA freezes the pre-trained model weights and injects trainable rank decomposition matrices into each layer, which signficantly reduces the number of trainable parameters, leading to efficient training with smaller datasets, which is aligned with our task \cite{huLoRALowRankAdaptation2021}. The goal is to evaluate the extent of improvement achieved after fine-tuning compared to the performance of the same Whisper model prior to fine-tuning. For benchmarking purposes, we use the monolingual model ReazonSpeech\cite{githubReazonSpeech}, specifically one with a similar parameter size as the Whisper tiny or small models\cite{githubOpenaiWhisper}, to provide a point of comparison. However, our purpose is not to surpass ReazonSpeech but rather to explore how much improvement can be achieved compared to the baseline Whisper models.
+
+The success of our project could have a transformative impact on ASR development, particularly for languages with complex writing systems like Japanese. Improved ASR models could provide tangible benefits across various sectors. For instance, individuals with disabilities who rely on ASR for communication, customer service systems requiring precise transcription and translation, and educational tools designed to support language learning could all benefit from enhanced speech recognition solutions. By bridging the gap between monolingual and multilingual performance, our project also aims to contribute valuable insights to the broader ASR community, influencing future research and development strategies.
+
+\subsection{Dataset}
+We used the Japanese datasets from Google Fleurs (GF)\cite{conneauFLEURSFewshotLearning2022}, Common Voice (CV)\cite{ardilaCommonVoiceMassivelyMultilingual2020}, JSUT\cite{sonobeJSUTCorpusFree2017}, and ReazonSpeech \cite{yinReazonSpeechFreeMassive} for training, and GF, CV and JSUT for testing, with a 80:10:10 train, validation, and test split. The Whisper models were previously evaluated in Japanese using CV and GF \cite{radfordRobustSpeechRecognition}, and the ReazonSpeech model was previously evaluated using the JSUT and CV \cite{holdingsReazonSpeechV21Setting2024}. Since the training sets used for the Whisper models were not disclosed, we leveraged the four datasets under the assumption that they were not already used. The datasets give us diversity in quality, vocal gender, and comprehensiveness of the language. A comparison of the datasets is summarized in Table 1.
+\begin{table}[ht]
+\centering
+\resizebox{0.45\textwidth}{!}{
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\textbf{Attribute} & \textbf{GF} & \textbf{CV} & \textbf{JSUT} & \textbf{ReazonSpeech} \\
+\hline
+\textbf{Background Noise} & \checkmark  & \checkmark  & - & \checkmark  \\
+\hline
+\textbf{Pauses} & \checkmark  & \checkmark  & - & -  \\
+\hline
+\textbf{Varying Volume} & \checkmark  & \checkmark  & - & -  \\
+\hline
+\textbf{Emotional Tones} & -    & \checkmark    & -   & \checkmark       \\
+\hline
+\textbf{Male Voices} & \checkmark    & \checkmark    & -   & \checkmark       \\
+\hline
+\textbf{Female Voices} & \checkmark  & \checkmark  & \checkmark  & \checkmark   \\
+\hline
+\textbf{Non-Native Speakers} & -    & \checkmark    & -      & -    \\
+\hline
+\end{tabular}
+}
+\caption{Comparison of Datasets}
+\end{table}
+
+\textbf{Google Fleurs (GF):}
+The dataset is described to have equal gender representation \cite{conneauFLEURSFewshotLearning2022}, but have more male voices than female voices. A limited number of speakers produced all samples.
+
+\textbf{JSUT:}
+JSUT contains a single female Japanese speaker, and is the only dataset recorded in a professional studio \cite{sonobeJSUTCorpusFree2017}. We will use the Basic5000 subcorpus of JSUT, which covers all readings of kanjis used in daily life. The advantage of this dataset is the clean audio and comprehensive construction of examples, but the limitation is the lack of variety in quality, gender, and tone. 
+
+\textbf{Common Voice Japanese Corpus (CV):}
+CV contains over 4000 voices of “native Japanese speakers”\cite{ardilaCommonVoiceMassivelyMultilingual2020}, however we found that a sizable portion of the voices, especially of the female voices, were not actually native Japanese speakers. The diversity and noise in the dataset may contribute to a more robust model that can perform ASR without pristine audio conditions and even for non-native speakers which may better reflect real-world usage. However, this non-uniformity in quality may make learning difficult. Ultimately, we decided that using this dataset in conjunction with the others, such as JSUT which provides clearly spoken native Japanese by a female speaker, would give balance to the overall dataset and contribute to the robustness of the model.
+
+\textbf{ReazonSpeech:}
+This is the only dataset that uses audio sampled from Japanese TV \cite{yinReazonSpeechFreeMassive} instead of recordings gathered for the purpose of a creating a dataset. As such, samples contain emotional tones, background music, fast speech, and both real and fantasy words. We did not include this in our test set because this was not used as a benchmark in other papers, and some examples contained words that only exist in anime.
+
+\subsection{Models}
+
+With the datasets defined, we now examine the architecture of the Whisper model, which serves as the backbone of our approach. Understanding its design and capabilities is crucial for contextualizing the fine-tuning process and evaluating its potential to improve the performance of Japanese ASR. Although Whisper is the main model in this study, we also used ReazonSpeech as a benchmark for Japanese ASR, providing a comparison to evaluate Whisper’s effectiveness in this context.
+
+\textbf{Whisper:}
+Whisper is a Transformer-based model designed for robust speech-to-text and language translation tasks\cite{IndroducingWhisper, MediumWhisper}. By training on 680,000 hours of diverse multilingual audio data, Whisper achieves significant performance improvements in scenarios involving noisy environments, accents, and specialized terminology. The model supports multiple tasks, including transcription, translation, and timestamping, without requiring separate architectures for each.
+
+The Whisper model processes audio in 30-second segments, converting the input into log-Mel spectrograms to standardize its representation. These spectrograms are then passed through two convolutional layers with GELU activation, which help extract low-level features from the audio input. Following this, sinusoidal positional encodings are added to encode temporal information explicitly, ensuring the model can capture the sequence of audio events.
+The processed features are then fed into Transformer Encoder Blocks, which consist of multiple layers of self-attention mechanisms and feed-forward networks(MLPs). These layers enable the encoder to extract hierarchical latent representations of the audio, capturing both local and global dependencies across the input sequence.
+On the decoding side, the Transformer Decoder Blocks generate text tokens by attending to the encoder’s latent representations via cross-attention mechanisms. Each decoder block includes self-attention for understanding relationships between previously generated tokens, cross-attention for aligning to the encoder output, and MLPs for feature transformation. The decoder also incorporates learned positional encodings to ensure token predictions respect the sequential structure of the output text.
+In Table~\ref{tab:comparison_whisper_models}, we present a concise comparison of the Whisper models, highlighting key architectural parameters.
+
+\begin{table}[ht]
+\centering
+\resizebox{0.45\textwidth}{!}{
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+\textbf{Attribute} & \textbf{Tiny} & \textbf{Base} & \textbf{Small} & \textbf{Medium} & \textbf{Large} \\
+\hline
+\textbf{Number of Parameters} & 39M  & 74M  & 244M & 769M & 1550M \\
+\hline
+\textbf{Encoder Layers} & 4    & 6    & 12   & 24   & 32    \\
+\hline
+\textbf{Decoder Layers} & 4    & 6    & 12   & 24   & 32    \\
+\hline
+\textbf{Hidden Dimensions} & 384  & 512  & 768  & 1024 & 1280  \\
+\hline
+\textbf{Attention Heads} & 6    & 8    & 12   & 16   & 20    \\
+\hline
+\end{tabular}
+}
+\caption{Comparison of Whisper models}
+\label{tab:comparison_whisper_models}
+\end{table}
+
+Smaller models like Whisper-Tiny are ideal for resource-constrained tasks, while larger models like Whisper-Large offer higher accuracy, making them ideal for demanding tasks that require substantial processing power. 
+
+\textbf{ReazonSpeech:}
+To further benchmark and compare Whisper’s performance, we introduce the ReazonSpeech models, which are specifically designed for Japanese ASR. ReazonSpeech models offer an alternative approach to Japanese speech recognition, offering a valuable comparison to Whisper’s Transformer-based architecture. By examining these models, we can better understand how the performance of our model in Japanese ASR compares to other established systems. The three ReazonSpeech models—ReazonSpeech-nemo\cite{ReazonSpeechNemo}, ReazonSpeech-k2\cite{ReazonSpeechK2}, and ReazonSpeech-espnet\cite{ReazonSpeechESPNet}—each utilize distinct techniques and optimizations, making them suitable for evaluating accuracy differences relative to our model.
+
 \section{Approach}
 
-(10 points) What did you do exactly? How did you solve the problem? Why did you think it would be successful? Is anything new in your approach? 
+\begin{figure*}[t]
+    \centering
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{./lora_comparison/loss_line.png}
+        \caption{Training Loss Curve}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{./lora_comparison/eval_loss_line.png}
+        \caption{Eval Loss Curve}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{./lora_comparison/eval_wer_line.png}
+        \caption{Eval WER Curve}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{./lora_comparison/eval_cer_line.png}
+        \caption{Eval CER Curve}
+    \end{subfigure}
+    \caption{Training and evaluation curves for different Rank values of LoRA. We also show the performance of the end-to-end fine-tuning approach. These curves are from fine-tuning the Tiny model.}
+    \label{fig:lora_comparison}
+\end{figure*}
 
-(5 points) What problems did you anticipate? What problems did you encounter? Did the very first thing you tried work? 
+This research aims to enhance the Whisper-Tiny model for Japanese ASR through fine-tuning approaches. We explored two primary methods: LoRA \cite{hu2021loralowrankadaptationlarge,xu2023parameterefficientfinetuningmethodspretrained} and end-to-end fine-tuning, focusing on Whisper-Tiny for its resource efficiency.
 
-\textbf{Important: Mention any code repositories (with citations) or other sources that you used, and specifically what changes you made to them for your project. }
+We anticipated three main challenges: managing memory constraints while fine-tuning in large datasets, preventing overfitting due to limited or imbalanced data, and handling the complexity of Japanese writing systems, where multiple valid representations(e.g., kanji and hiragana) can lead to inconsistencies in transcription. These considerations shaped our approach to data preparation and model optimization.
+
+Our methodology combined four Japanese datasets (GF, CV, JSUT, and ReazonSpeech) into a comprehensive training set, implementing SpecAugment for data augmentation. Traditional audio augmentation techniques like time-stretching and pitch-shifting were also tested, but ultimately excluded due to minimal impact.
+
+For LoRA, we modified key transformer layers with rank-adaptive matrices, experimenting with rank values to optimize performance while preserving most original parameters. In parallel, we conducted end-to-end fine-tuning, updating all parameters using our combined dataset. This involved carefully implementing gradient checkpointing and learning rate scheduling to address memory constraints and avoid overfitting.
+
+Several significant challenges arose during our research. Memory constraints initially prevented training larger models, which we addressed through gradient checkpointing and batch size optimization. Overfitting posed another challenge, as the model exhibited strong training performance but poor generalization. This issue was successfully mitigated through the use of data augmentation and careful tuning of weight decay parameters. The CV dataset included invalid examples, requiring filtering to create an effective training set.
+
+Initial attempts revealed important insights that shaped our final approach. We started with direct fine-tuning of Whisper-Tiny but encountered immediate overfitting issues, leading us to explore alternative strategies. Through iterations, we introduced LoRA to address memory constraints and added SpecAugment after observing limited generalization. Some experiments, such as traditional audio augmentation and larger batch sizes, showed minimal benefits or decreased performance, guiding us to focus our efforts on more effective approaches. Through these iterations and challenges, we developed a robust methodology that effectively improved Japanese ASR performance while maintaining practical resource requirements.
 
 \section{Experiments and Results}
 
@@ -145,355 +258,268 @@ First line of institution2 address\\
         \includegraphics[width=\textwidth]{./small/eval_cer_line.png}
         \caption{Small Eval CER}
     \end{subfigure}
-    \caption{Training and evaluation metrics for Tiny (top row), Base (middle row), and Small (bottom row) models. From left to right: training loss, evaluation loss, training WER, and evaluation CER.}
+    \caption{Training and evaluation metrics for Tiny (top row), Base (middle row), and Small (bottom row) models. The columns represent, from left to right: training loss, evaluation loss, training WER, and evaluation CER. For the Tiny and Base models, experiments demonstrate that E2E fine-tuning achieves superior performance. In contrast, the Small model exhibits better convergence with LoRA fine-tuning likely due to its ability to efficiently adapt large parameter sets while maintaining computational efficiency. Refer to subfigures j, k, and l for details.}
     \label{fig:training_metrics}
 \end{figure*}
 
-(10 points) How did you measure success? What experiments were used? What were the results, both quantitative and qualitative? Did you succeed? Did you fail? Why? Justify your reasons with arguments supported by evidence and data.
-
-\textbf{Important: This section should be rigorous and thorough. Present detailed information about decision you made, why you made them, and any evidence/experimentation to back them up. This is especially true if you leveraged existing architectures, pre-trained models, and code (i.e. do not just show results of fine-tuning a pre-trained model without any analysis, claims/evidence, and conclusions, as that tends to not make a strong project). }
-
-%-------------------------------------------------------------------------
-\section{Other Sections}
-
-\begin{table*}
-\begin{center}
-\begin{tabular}{|l|c|p{8cm}|}
-\hline
-Student Name & Contributed Aspects & Details \\
-\hline\hline
-Team Member 1 & Data Creation and Implementation & Scraped the dataset for this project and trained the CNN of the encoder. Implemented attention mechanism to improve results. \\
-Team Member 2 & Implementation and Analysis & Trained the LSTM of the encoder and analyzed the results. Analyzed effect of number of nodes in hidden state.  Implemented Convolutional LSTM. \\
-\hline
-\end{tabular}
-\end{center}
-\caption{Contributions of team members.}
-\label{tab:contributions}
-\end{table*}
-
-
-
-You are welcome to introduce additional sections or subsections, if required, to address the following questions in detail. 
-
-(5 points) Appropriate use of figures / tables / visualizations. Are the ideas presented with appropriate illustration? Are the results presented clearly; are the important differences illustrated? 
-
-(5 points) Overall clarity. Is the manuscript self-contained? Can a peer who has also taken Deep Learning understand all of the points addressed above? Is sufficient detail provided? 
-
-(5 points) Finally, points will be distributed based on your understanding of how your project relates to Deep Learning. Here are some questions to think about: 
-
-What was the structure of your problem? How did the structure of your model reflect the structure of your problem? 
-
-What parts of your model had learned parameters (e.g., convolution layers) and what parts did not (e.g., post-processing classifier probabilities into decisions)? 
-
-What representations of input and output did the neural network expect? How was the data pre/post-processed?
-What was the loss function? 
-
-Did the model overfit? How well did the approach generalize? 
-
-What hyperparameters did the model have? How were they chosen? How did they affect performance? What optimizer was used? 
-
-What Deep Learning framework did you use? 
-
-What existing code or models did you start with and what did those starting points provide? 
-
-Briefly discuss potential future work that the research community could focus on to make improvements in the direction of your project's topic.
-
-
-%-------------------------------------------------------------------------
-
-\section{Work Division}
-
-Please add a section on the delegation of work among team members at the end of the report, in the form of a table and paragraph description. This and references do \textbf{NOT} count towards your page limit. An example has been provided in Table \ref{tab:contributions}.
-
-\newpage
-\newpage
-\section{Miscellaneous Information}
-
-The rest of the information in this format template has been adapted from CVPR 2020 and provides guidelines on the lower-level specifications regarding the paper's format.
-
-\subsection{Language}
-
-All manuscripts must be in English.
-
-
-\subsection{Paper length}
-Papers, excluding the references section,
-must be no longer than six pages in length. The references section
-will not be included in the page count, and there is no limit on the
-length of the references section. For example, a paper of six pages
-with two pages of references would have a total length of 8 pages.
-
-%-------------------------------------------------------------------------
-\subsection{The ruler}
-The \LaTeX\ style defines a printed ruler which should be present in the
-version submitted for review.  The ruler is provided in order that
-reviewers may comment on particular lines in the paper without
-circumlocution.  If you are preparing a document using a non-\LaTeX\
-document preparation system, please arrange for an equivalent ruler to
-appear on the final output pages.  The presence or absence of the ruler
-should not change the appearance of any other content on the page.  The
-camera ready copy should not contain a ruler. (\LaTeX\ users may uncomment
-the \verb'\cvprfinalcopy' command in the document preamble.)  Reviewers:
-note that the ruler measurements do not align well with lines in the paper
---- this turns out to be very difficult to do well when the paper contains
-many figures and equations, and, when done, looks ugly.  Just use fractional
-references (e.g.\ this line is $095.5$), although in most cases one would
-expect that the approximate location will be adequate.
-
-\subsection{Mathematics}
-
-Please number all of your sections and displayed equations.  It is
-important for readers to be able to refer to any particular equation.  Just
-because you didn't refer to it in the text doesn't mean some future reader
-might not need to refer to it.  It is cumbersome to have to use
-circumlocutions like ``the equation second from the top of page 3 column
-1''.  (Note that the ruler will not be present in the final copy, so is not
-an alternative to equation numbers).  All authors will benefit from reading
-Mermin's description of how to write mathematics:
-\url{http://www.pamitc.org/documents/mermin.pdf}.
-
-Finally, you may feel you need to tell the reader that more details can be
-found elsewhere, and refer them to a technical report.  For conference
-submissions, the paper must stand on its own, and not {\em require} the
-reviewer to go to a techreport for further details.  Thus, you may say in
-the body of the paper ``further details may be found
-in~\cite{Authors14b}''.  Then submit the techreport as additional material.
-Again, you may not assume the reviewers will read this material.
-
-Sometimes your paper is about a problem which you tested using a tool which
-is widely known to be restricted to a single institution.  For example,
-let's say it's 1969, you have solved a key problem on the Apollo lander,
-and you believe that the CVPR70 audience would like to hear about your
-solution.  The work is a development of your celebrated 1968 paper entitled
-``Zero-g frobnication: How being the only people in the world with access to
-the Apollo lander source code makes us a wow at parties'', by Zeus \etal.
-
-You can handle this paper like any other.  Don't write ``We show how to
-improve our previous work [Anonymous, 1968].  This time we tested the
-algorithm on a lunar lander [name of lander removed for blind review]''.
-That would be silly, and would immediately identify the authors. Instead
-write the following:
-\begin{quotation}
-\noindent
-   We describe a system for zero-g frobnication.  This
-   system is new because it handles the following cases:
-   A, B.  Previous systems [Zeus et al. 1968] didn't
-   handle case B properly.  Ours handles it by including
-   a foo term in the bar integral.
-
-   ...
-
-   The proposed system was integrated with the Apollo
-   lunar lander, and went all the way to the moon, don't
-   you know.  It displayed the following behaviours
-   which show how well we solved cases A and B: ...
-\end{quotation}
-As you can see, the above text follows standard scientific convention,
-reads better than the first version, and does not explicitly name you as
-the authors.  A reviewer might think it likely that the new paper was
-written by Zeus \etal, but cannot make any decision based on that guess.
-He or she would have to be sure that no other authors could have been
-contracted to solve problem B.
-\medskip
-
-\noindent
-FAQ\medskip\\
-{\bf Q:} Are acknowledgements OK?\\
-{\bf A:} No.  Leave them for the final copy.\medskip\\
-{\bf Q:} How do I cite my results reported in open challenges?
-{\bf A:} To conform with the double blind review policy, you can report results of other challenge participants together with your results in your paper. For your results, however, you should not identify yourself and should not mention your participation in the challenge. Instead present your results referring to the method proposed in your paper and draw conclusions based on the experimental comparison to other results.\medskip\\
-
-\begin{figure}[t]
-\begin{center}
-\fbox{\rule{0pt}{2in} \rule{0.9\linewidth}{0pt}}
-   %\includegraphics[width=0.8\linewidth]{egfigure.eps}
-\end{center}
-   \caption{Example of caption.  It is set in Roman so that mathematics
-   (always set in Roman: $B \sin A = A \sin B$) may be included without an
-   ugly clash.}
-\label{fig:long}
-\label{fig:onecol}
-\end{figure}
-
-\subsection{Miscellaneous}
-
-\noindent
-Compare the following:\\
-\begin{tabular}{ll}
- \verb'$conf_a$' &  $conf_a$ \\
- \verb'$\mathit{conf}_a$' & $\mathit{conf}_a$
-\end{tabular}\\
-See The \TeX book, p165.
-
-The space after \eg, meaning ``for example'', should not be a
-sentence-ending space. So \eg is correct, {\em e.g.} is not.  The provided
-\verb'\eg' macro takes care of this.
-
-When citing a multi-author paper, you may save space by using ``et alia'',
-shortened to ``\etal'' (not ``{\em et.\ al.}'' as ``{\em et}'' is a complete word.)
-However, use it only when there are three or more authors.  Thus, the
-following is correct: ``
-   Frobnication has been trendy lately.
-   It was introduced by Alpher~\cite{Alpher02}, and subsequently developed by
-   Alpher and Fotheringham-Smythe~\cite{Alpher03}, and Alpher \etal~\cite{Alpher04}.''
-
-This is incorrect: ``... subsequently developed by Alpher \etal~\cite{Alpher03} ...''
-because reference~\cite{Alpher03} has just two authors.  If you use the
-\verb'\etal' macro provided, then you need not worry about double periods
-when used at the end of a sentence as in Alpher \etal.
-
-For this citation style, keep multiple citations in numerical (not
-chronological) order, so prefer \cite{Alpher03,Alpher02,Authors14} to
-\cite{Alpher02,Alpher03,Authors14}.
-
-
-\begin{figure*}
-\begin{center}
-\fbox{\rule{0pt}{2in} \rule{.9\linewidth}{0pt}}
-\end{center}
-   \caption{Example of a short caption, which should be centered.}
-\label{fig:short}
-\end{figure*}
-
-%------------------------------------------------------------------------
-\subsection{Formatting your paper}
-
-All text must be in a two-column format. The total allowable width of the
-text area is $6\frac78$ inches (17.5 cm) wide by $8\frac78$ inches (22.54
-cm) high. Columns are to be $3\frac14$ inches (8.25 cm) wide, with a
-$\frac{5}{16}$ inch (0.8 cm) space between them. The main title (on the
-first page) should begin 1.0 inch (2.54 cm) from the top edge of the
-page. The second and following pages should begin 1.0 inch (2.54 cm) from
-the top edge. On all pages, the bottom margin should be 1-1/8 inches (2.86
-cm) from the bottom edge of the page for $8.5 \times 11$-inch paper; for A4
-paper, approximately 1-5/8 inches (4.13 cm) from the bottom edge of the
-page.
-
-%-------------------------------------------------------------------------
-\subsection{Margins and page numbering}
-
-All printed material, including text, illustrations, and charts, must be kept
-within a print area 6-7/8 inches (17.5 cm) wide by 8-7/8 inches (22.54 cm)
-high.
-
-
-
-%-------------------------------------------------------------------------
-\subsection{Type-style and fonts}
-
-Wherever Times is specified, Times Roman may also be used. If neither is
-available on your word processor, please use the font closest in
-appearance to Times to which you have access.
-
-MAIN TITLE. Center the title 1-3/8 inches (3.49 cm) from the top edge of
-the first page. The title should be in Times 14-point, boldface type.
-Capitalize the first letter of nouns, pronouns, verbs, adjectives, and
-adverbs; do not capitalize articles, coordinate conjunctions, or
-prepositions (unless the title begins with such a word). Leave two blank
-lines after the title.
-
-AUTHOR NAME(s) and AFFILIATION(s) are to be centered beneath the title
-and printed in Times 12-point, non-boldface type. This information is to
-be followed by two blank lines.
-
-The ABSTRACT and MAIN TEXT are to be in a two-column format.
-
-MAIN TEXT. Type main text in 10-point Times, single-spaced. Do NOT use
-double-spacing. All paragraphs should be indented 1 pica (approx. 1/6
-inch or 0.422 cm). Make sure your text is fully justified---that is,
-flush left and flush right. Please do not place any additional blank
-lines between paragraphs.
-
-Figure and table captions should be 9-point Roman type as in
-Figures~\ref{fig:onecol} and~\ref{fig:short}.  Short captions should be centred.
-
-\noindent Callouts should be 9-point Helvetica, non-boldface type.
-Initially capitalize only the first word of section titles and first-,
-second-, and third-order headings.
-
-FIRST-ORDER HEADINGS. (For example, {\large \bf 1. Introduction})
-should be Times 12-point boldface, initially capitalized, flush left,
-with one blank line before, and one blank line after.
-
-SECOND-ORDER HEADINGS. (For example, { \bf 1.1. Database elements})
-should be Times 11-point boldface, initially capitalized, flush left,
-with one blank line before, and one after. If you require a third-order
-heading (we discourage it), use 10-point Times, boldface, initially
-capitalized, flush left, preceded by one blank line, followed by a period
-and your text on the same line.
-
-%-------------------------------------------------------------------------
-\subsection{Footnotes}
-
-Please use footnotes\footnote {This is what a footnote looks like.  It
-often distracts the reader from the main flow of the argument.} sparingly.
-Indeed, try to avoid footnotes altogether and include necessary peripheral
-observations in
-the text (within parentheses, if you prefer, as in this sentence).  If you
-wish to use a footnote, place it at the bottom of the column on the page on
-which it is referenced. Use Times 8-point type, single-spaced.
-
-
-%-------------------------------------------------------------------------
-\subsection{References}
-
-List and number all bibliographical references in 9-point Times,
-single-spaced, at the end of your paper. When referenced in the text,
-enclose the citation number in square brackets, for
-example~\cite{Authors14}.  Where appropriate, include the name(s) of
-editors of referenced books.
-
-\begin{table}
-\begin{center}
-\begin{tabular}{|l|c|}
-\hline
-Method & Frobnability \\
-\hline\hline
-Theirs & Frumpy \\
-Yours & Frobbly \\
-Ours & Makes one's heart Frob\\
-\hline
-\end{tabular}
-\end{center}
-\caption{Results.   Ours is better.}
+\textbf{Evaluation Metrics:}
+We evaluate our Japanese ASR models using Word Error Rate (WER) and Character Error Rate (CER). WER assesses word-level accuracy, while CER captures character-level differences. Together, these metrics provide a comprehensive view of the model's performance.
+
+WER and CER are calculated as follows:
+
+\begin{equation}
+\text{WER} = \frac{S + D + I}{N}
+\end{equation}
+\quad
+\begin{equation}
+\text{CER} = \frac{S + D + I}{C}
+\end{equation}
+
+\vspace{0.2cm}
+
+\noindent where \(S\) is the number of substitutions (incorrect words or characters), \(D\) is the number of deletions (missing words or characters), and \(I\) is the number of insertions (extra words or characters). \(N\) represents the total number of words in the reference (used for Word Error Rate, WER), while \(C\) is the total number of characters in the reference (used for Character Error Rate, CER).
+
+% \[
+% \text{WER} = \frac{S + D + I}{N}
+% \]
+% \[
+% \text{CER} = \frac{S + D + I}{C}
+% \]
+
+% Where:
+% \begin{itemize}
+%     \item \(S\): Number of substitutions (incorrect words or characters)
+%     \item \(D\): Number of deletions (missing words or characters)
+%     \item \(I\): Number of insertions (extra words or characters)
+%     \item \(N\): Total words in the reference (for WER)
+%     \item \(C\): Total characters in the reference (for CER)
+% \end{itemize}
+
+
+In Japanese, punctuation and spacing often lack semantic value but are treated as errors by WER and CER. To address this, we apply normalization to remove punctuation, unify spacing, and standardize full-width and half-width characters. These preprocessing steps ensure the metrics focus on meaningful differences rather than formatting inconsistencies.
+
+However, upon examining our outputs, we noticed there were instances where words were spelled out in hiragana (the phonetic writing system) in the ground truth labels, while the model outputted the same word in kanji (the conceptual writing system based on Chinese characters), or vice versa. Such differences were counted as errors in both CER and WER metrics, but are not true errors because they are often interchangeable while maintaining semantic and phonetic correctness. This highlights a limitation of standard metrics generally applied across languages, as revealed by the complexities of the Japanese language, which remains an active area of research \cite{karitaLenientEvaluationJapanese2023}. We envision that other languages will also have idiosyncrasies that require nuanced evaluation.
+
+\begin{table}[t]
+    \centering
+    \begin{tabular}{lcc}
+    \toprule
+    \textbf{Model} & \textbf{WER (\%)} & \textbf{CER (\%)} \\
+    \midrule
+    % \multicolumn{3}{l}{\textit{Baseline Models}} \\
+    Whisper Tiny & 47.48 & 32.74 \\
+    Whisper Base & 29.81 & 20.20 \\
+    Whisper Small & 16.14 & 9.89 \\
+    Whisper Medium & 10.84 & 6.86 \\
+    Whisper Large & 7.06 & 4.63 \\
+    \midrule
+    % \multicolumn{3}{l}{\textit{Fine-tuned Models}} \\
+    Whisper Tiny + LoRA & 33.16 & 20.83 \\
+    Whisper Base + LoRA & 23.36 & 14.50 \\
+    Whisper Small + LoRA & 14.90 & 9.16 \\
+    \midrule
+    Whisper Tiny + End-to-End & 23.67 & 14.72 \\
+    Whisper Base + End-to-End & 16.39 & 10.07 \\
+    Whisper Small + End-to-End & 12.19 & 7.38 \\
+    \midrule
+    % \multicolumn{3}{l}{\textit{ReazonSpeech Models}} \\
+    ReazonSpeech (NeMo) & 7.75 & 5.24 \\
+    ReazonSpeech (K2) & 8.55 & 6.07 \\
+    ReazonSpeech (ESPnet) & \textbf{7.05} & \textbf{4.62} \\
+    \bottomrule
+    \end{tabular}
+    \caption{Comparison of WER and CER across different ASR models and fine-tuning approaches on Japanese speech recognition.}
+    \label{tab:asr_results}
 \end{table}
 
+\textbf{Data Augmentation:}
+We applied two types of data augmentation to training data: audio data augmentation and SpecAugment.
+For audio augmentation, we experimented with techniques such as time-stretching, pitch alteration, gain adjustment, and adding Gaussian noise. However, the settings that we used were minimal and did not significantly affect the dataset. Combined with the fact that we already had a large amount of training data from four diverse datasets, audio augmentation did not improve performance and only increased training time by doubling the dataset size. Consequently, we decided to turn off audio augmentation and focus on SpecAugment instead.
+
+SpecAugment, which involves modifying the spectrograms by randomly masking frequency bands and time intervals to improve robustness(Figure~\ref{fig:spec-augment})\cite{SpecAugment}, showed clear benefits. The results demonstrate that SpecAugment significantly improves model performance by reducing overfitting and enhancing generalization capabilities(Figure~\ref{fig:spec_aug_comparison}). This highlights the effectiveness of SpecAugment in enhancing model performance.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1.0\linewidth]{./spec_augment.png}
+    \caption{Visualization of SpecAugment: Original Log-Mel spectrum (Left) vs Augmented Spectrogram with Time and Frequency Masking (Right)}
+    \label{fig:spec-augment}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.8\linewidth]{./base_spec_eval/eval_loss_line.png}
+    \caption{Evaluation loss comparison between models trained with and without SpecAugment}
+    \label{fig:spec_aug_comparison}
+\end{figure}
+
+\begin{table*}[ht]
+    \centering
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{p{2cm}p{4cm}p{4cm}p{4cm}}
+        \hline
+        \textbf{Model} & \textbf{Transcription} & \textbf{Phonetic Reading} & \textbf{English Translation} \\
+        \hline
+        \textbf{Ground Truth} & 
+        \begin{CJK}{UTF8}{min}\textcolor{blue}{外見}から\textcolor{blue}{判断}すると彼女はとても金持ちのようだ\end{CJK} & 
+        Gaiken kara handan suru to kanojo wa totemo kanemochi no you da & 
+        Judging by appearances, she seems very wealthy. \\
+        
+        \textbf{Baseline Tiny} & 
+        \begin{CJK}{UTF8}{min}\textcolor{red}{外県}から\textcolor{red}{ハンダン}すると彼女はとても金持ちのようだ\end{CJK} & 
+        & Judging from outside provinces, she seems very wealthy. \\
+        
+        \textbf{LoRA Tiny} & 
+        \begin{CJK}{UTF8}{min}\textcolor{red}{外県}から\textcolor{blue}{判断}すると彼女はとても金持ちのようだ\end{CJK} & 
+        & Judging from outside provinces, she seems very wealthy. \\
+        
+        \textbf{E2E Tiny} & 
+        \begin{CJK}{UTF8}{min}\textcolor{blue}{外見}から\textcolor{blue}{判断}すると彼女はとても金持ちのようだ\end{CJK} & 
+        & Judging by appearances, she seems very wealthy. \\
+        \hline
+    \end{tabular}
+    \caption{Transcription samples from various models with their phonetic readings and English translations. The phonetic readings are consistent across all models, but differences in Kanji lead to significant variations in semantic meaning.}
+    \label{tab:transcription_comparison}
+\end{table*}
+
+\textbf{Finding an Optimal LoRA Rank:}
+In Figure~\ref{fig:lora_comparison}, we compare the performance of LoRA fine-tuning across different ranks. The rank corresponds to the number of trainable parameters in the LoRA adapter layers, which are combined with the original model parameters to produce the final output during inference.
+
+Our experiments considered ranks ranging from 64 to 256. We observe that increasing the rank leads to improved model performance, approaching the results of full end-to-end fine-tuning. This trend suggests that higher ranks enable the LoRA adapters to better capture the complexity inherent in the dataset.
+
+Among the tested configurations, a rank of 256 yielded the best performance. This is likely due to the dataset's large size and diversity, necessitating a higher rank to capture its complexity effectively. While higher ranks could potentially improve performance further, constraints on GPU memory and training time limited our experiments to a maximum rank of 256.
+
+\subsection{Quantitative Analysis}
+The results demonstrate significant improvements in CER as models undergo fine-tuning and increase in size. The Original Tiny model, starting with the highest CER at 32.7, highlights the limitations of the base Tiny architecture in its unoptimized state. However, the introduction of LoRA fine-tuning dramatically reduces the CER to 20.8, bringing its performance on par with the Original Base model (CER: 20.2). This illustrates the effectiveness of LoRA in narrowing the performance gap between smaller and larger models through targeted optimization.
+
+Further enhancement is seen in the E2E Tiny model, which achieves a CER of 14.7, outperforming the Original Base model. This result underscores the capability of end-to-end fine-tuning to leverage the Tiny model’s architecture more effectively, surpassing the baseline of a larger model.
+
+Finally, the Original Small model achieves the lowest CER of 9.9, reflecting the inherent advantages of increased model size in handling transcription tasks. However, the progression observed in the Tiny models demonstrates that with strategic fine-tuning, even smaller architectures can achieve results competitive with, and in some cases superior to, larger models. This finding emphasizes the value of fine-tuning techniques like LoRA and E2E in maximizing the potential of resource-constrained ASR systems.
+
+\subsection{Qualitative Analysis}
+This section provides a qualitative exploration of ASR model performance, focusing on how fine-tuning approaches, such as LoRA and E2E, introduce improvements over baseline models. We highlight two representative cases from our analysis: the first showcases successful adaptation to contextual nuances enabled by fine-tuning, while the second illustrates limitations in handling domain-specific terminology when such terms are not adequately represented in the fine-tuning data.
+
+\textbf{Handling Ambiguity in Contextual Judgments:}
+Here, we evaluate how ASR models address ambiguity in transcription when faced with phonetically similar phrases. Accurate recognition in such cases relies heavily on contextual clues. The phonetic readings produced by all models (Tiny Base, Tiny LoRA, and Tiny E2E) are identical, reflecting that the models consistently capture the correct pronunciation of the input. However, Tiny LoRA and Tiny E2E exhibit a notable advancement over Tiny Base by generating kanji characters that more accurately reflect the intended meaning within the context of the sentence. This improvement highlights the effectiveness of fine-tuning techniques, which enable the models to go beyond merely preserving phonetic fidelity and instead incorporate semantic understanding to produce contextually appropriate transcriptions. These results emphasize how targeted adjustments can refine a model's ability to align written output with both phonetic and contextual correctness(see Table~\ref{tab:transcription_comparison} for details).
+
+\textbf{Handling of Technical Terms and Specialized Vocabulary:}
+An area where the models encountered notable challenges was in handling specialized medical terms. Terms such as "encephalitis" and "Listeria" were frequently misinterpreted across all models. Although fine-tuning provided minor improvements, these errors surface the limitations of the current training data and the necessity of incorporating domain-specific datasets to improve recognition. Additional details in the Appendix (Table~\ref{tab:transcription_comparison_appendix}).
+
+These findings underscore the varying capabilities of ASR models in handling ambiguity and specialized vocabulary, emphasizing the need for targeted improvements in context understanding and domain-specific training. 
+
+\section{Conclusion}
+This study explores the potential of language-specific fine-tuning of general multi-lingual ASR models like Whisper, to benefit from the learned base of language-agnostic patterns before specializing in a single language. 
+We showed that by utilizing Japanese-specific datasets and employing LoRA for parameter-efficient updates or end-to-end fine-tuning we were able to improve Whisper's ASR accuracy while maintaining its resource-efficient architecture. 
+The significance of the improvement in ASR quality from fine-tuning cannot be understated, as we were able to show that a fine-tuned Whisper Tiny model could achieve higher performance than the larger baseline Whisper-Base model. This research contributes a scalable and resource-efficient approach for improving ASR systems that leverage publicly available multi-lingual models in resource-constrained settings.
+Fine-tuning multi-lingual models to achieve language-specific specialization offers an inclusive pathway for diverse linguistic communities, especially in languages that may lack the volume of data needed to train effectively train a mono-lingual model.
+
 %-------------------------------------------------------------------------
-\subsection{Illustrations, graphs, and photographs}
-
-All graphics should be centered.  Please ensure that any point you wish to
-make is resolvable in a printed copy of the paper.  Resize fonts in figures
-to match the font in the body text, and choose line widths which render
-effectively in print.  Many readers (and reviewers), even of an electronic
-copy, will choose to print your paper in order to read it.  You cannot
-insist that they do otherwise, and therefore must not assume that they can
-zoom in to see tiny details on a graphic.
-
-When placing figures in \LaTeX, it's almost always best to use
-\verb+\includegraphics+, and to specify the  figure width as a multiple of
-the line width as in the example below
-{\small\begin{verbatim}
-   \usepackage[dvips]{graphicx} ...
-   \includegraphics[width=0.8\linewidth]
-                   {myfile.eps}
-\end{verbatim}
-}
-
-
-%-------------------------------------------------------------------------
-\subsection{Color}
-
-Please refer to the author guidelines on the CVPR 2020 web page for a discussion
-of the use of color in your document.
-
-%------------------------------------------------------------------------
-
-%-------------------------------------------------------------------------
-
+\clearpage
 
 {\small
-\bibliographystyle{ieee_fullname}
 \bibliography{egbib}
 }
 
+%-------------------------------------------------------------------------
+\clearpage
+
+\appendix
+\section*{Appendix}
+\renewcommand{\thesection}{\Alph{section}}
+\setcounter{section}{0}
+
+\section{Handling of Technical Terms and Specialized Vocabulary}
+
+\begin{table}[H]
+    \centering
+    \caption{Transcription and Translation Comparisons Appendix}
+    \label{tab:transcription_comparison_appendix}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{adjustbox}{width=\textwidth}
+    \begin{tabular}{p{2.5cm}p{5cm}p{5cm}p{4cm}}
+        \toprule
+        \textbf{Model} & \textbf{Transcription} & \textbf{Phonetic Reading} & \textbf{English Translation} \\
+        \midrule
+        \textbf{Ground Truth} & \begin{CJK*}{UTF8}{min}マイコプラズマ 脳炎 猫 ひっかき 病 赤痢 アメ - バ 熱帯 熱 マラリア 結核 リステリア トキソプラズマ など の 病原 体 で も 脳炎 が 起こる こと が ある\end{CJK*} & Maikopurazuma nouen neko hikkaki byou sekiri ameeba nettai netsu mararia kekkaku risuteria tokisopurazuma nado no byougentai demo nouen ga okoru koto ga aru & Brain inflammation can also be caused by pathogens such as Mycoplasma, cat-scratch disease, Entamoeba histolytica, tropical malaria, tuberculosis, Listeria, or Toxoplasma. \\
+        \textbf{Baseline Tiny} & \begin{CJK*}{UTF8}{min}マイコプラズマ の 上 ネコヒッカキ 病 セキリアメイバ - ネッタイネ つ マラリア 結果 く リステリア 時 ソ プラズマ など の 病 源 体 で も の え が 起こる こと が ある\end{CJK*} & Maikopurazuma no ue neko hikkaki byou sekiri ameiba nettai netsu mararia kekkaku risuteria tokisopurazuma nado no byougentai demo noe ga okoru koto ga aru & (Nonsensical and fragmented; many terms mispronounced or incorrectly written.) \\
+        \textbf{Lora Tiny} & \begin{CJK*}{UTF8}{min}マイコプラズマ の うえ 根子 ひっかき 病 セキリアメイバ - バ 熱帯 熱 マラリア 結果 く ビス テリア 特質 プラズマ など の 病 源 体 で も の うえ が 起こる こと が ある\end{CJK*} & Maikopurazuma no ue neko hikkaki byou sekiri ameeba nettai netsu mararia kekkaku bisuteria tokushitsu purazuma nado no byougentai demo noue ga okoru koto ga aru\\
+        \textbf{E2E Tiny} & \begin{CJK*}{UTF8}{min}マイコプラズマ の 上 猫 ヒッカ 疑 病 赤 利 あめ ば 熱帯 熱 マラリア 結核 ギス テリア 特 ソ プラズマ など の 病原 体 で も 上演 が 起こる こと が ある\end{CJK*} & Maikopurazuma no ue neko hikka giyou sekiri ameba nettai netsu mararia kekkaku gisutoria tokuso purazuma nado no jouen ga okoru koto ga aru\\
+        \bottomrule
+    \end{tabular}
+    \end{adjustbox}
+\end{table}
+
+\section{Source Code}
+\raggedright
+Our source code is available at :
+\href{https://github.com/ryujimorita/tokyo_whisperers}{https://github.com/ryujimorita/tokyo\_whisperers}
+
+
+
+%-------------------------------------------------------------------------
+\clearpage
+
+\begin{table} \small%
+\renewcommand{\arraystretch}{0.9}
+\begin{tabular}{|p{2cm}|p{2.9cm}|p{13cm}|}
+\hline
+\textbf{Student} & \textbf{Contributed Aspects} & \textbf{Details}  \\
+\hline
+\textbf{Mark Bajo} & Overall Codebase & Owner of majority of the code and modules in the repository. Please confirm this claim by inspecting the github repository and please note that this statement is not to undermine my teammate's contributions. Implementation of E2E and LoRA routines. Fractional dataloading functionalities. Regularization (dropout, weight-decay) implementation. Metrics calculation routines for WER and CER. Evaluation scripts for the baseline (whisper and reazonspeech) and trained models. Established general routine for the experiments and collaboration via WandB setup. Quality of life functionalites such as timely saving of metrics and models and plot generation for the report. \\
+\cline{2-3} & Plot Generation & Generated the plots in the report. Developed a module for plotting selected experiments. \\
+\cline{2-3} & Analysis & Wrote the quantitative analysis, approach section, LoRA parameter experiments discussion. Ran experiments used in the paper with the agreed hyperparameters and setup discussed by the team. \\
+\cline{2-3} & Hyperparameter Tuning and Ablation & Identified early problems such as catastrophic forgetting and proposed LoRA (Figure~\ref{fig:lora_comparison}). Experimented with different parameters for LoRA and E2E routines. Experimented with different whisper model sizes and freeze condition of layers. See Figure~\ref{fig:training_metrics}. Set-up experiment and conducted ablation of data-augmentation as discussed by the team. See Figure~\ref{fig:spec_aug_comparison}. \\
+\cline{2-3} & Overall project direction & Authored the first draft of our project proposal, conducted research paper review and shared knowledge, paper suggestion, gave feedback for the paper and code implementation, and overall editing of report. \\
+\hline
+\textbf{Haruka Fukukawa} & Dataset EDA & Read the papers and blogs published with the datasets and manually went through all four datasets to verify the quality of the data and balance of characteristics \\
+\cline{2-3}
+                 & Dataloaders & Wrote the code related to splitting the datasets, sampling a fraction of each, and concatenating the four datasets into one dataset. See src/dataloader.py. \\
+\cline{2-3}
+                 & Data Configs & Wrote the configs to download each dataset from HuggingFace. See conf/dataset\_config.yaml. \\
+\cline{2-3}
+                 & Selected Subcorpuses and Versions of Datasets & Based on qualitative analysis and running trials on multiple versions of the datasets, I selected the vers. 11 of the CV dataset and the Basic5000 subcorpus of JSUT. The newer versions of CV were too large while being subpar in quality compared to other datasets, and using the full JSUT dataset would add too much bias on the exceptional quality and singular voice compared to other datasets. Discussion of dataset EDA and selection omitted in report for length limit. \\
+\cline{2-3}
+                 & Inference & Wrote the code to load and run a fine-tuned model from the saved checkpoint on the test dataset. See infer.py.  \\
+\cline{2-3}
+                 & Analysis & Qualitative analysis of the outputs from our model. See discussion on CER and WER on our output in the section on Experiments and Results.  \\
+\cline{2-3}
+                 & Hyperparameter tuning & Ran trials with our models, focusing on the dataset percentage to sample. The results obtained were ultimately inconclusive, with only insignificant changes in the resulting metrics.  \\
+\cline{2-3}
+                 & Dataset Description & Wrote the section describing the datasets and reasoning for why each of them were selected. See section 1.1 Dataset.  \\
+\cline{2-3}
+                 & Conclusion & Wrote the conclusion portion of the report. See Conclusion.  \\
+\cline{2-3}
+                 & Report Editing & Gave feedback and comments on the content of teammates' work. See Introduction/Background/Motivation.  \\
+\hline
+\textbf{Ryuji Morita} & Research & Reviewed research papers and websites to understand the Whisper, ReazonSpeech models as well as each dataset we used.
+Investigated solutions to resolve sudden increases in WER / CER. \\
+\cline{2-3}
+                 & Data Augmentation & Implemented two types of data augmentation: audio augmentation and SpecAugment. See src.augment.py.  \\
+\cline{2-3}
+                 & Visualization & Developed a module to plot training/evaluation loss, learning rate curves, and evaluation metrics such as WER and CER. See src.viz.py.  \\
+\cline{2-3}
+                 & Hyperparameter Tuning & Conducted over 20 experiments with various combinations of hyperparameters. Monitored results, identified issues and areas for improvement, and refined the parameters based on observations.  \\
+\cline{2-3}
+                 & Code Modualarization & Explored modularizing the initial baseline evaluation code to enable comprehensive evaluation of all datasets using the test set.  \\
+\cline{2-3}
+                 & Debug, Environment Setup & Identified data leakage from log and made suggestions to fix the issue. Created a Dockerfile for Mac silicon development. Configured settings for Google Colab to facilitate model training. See README.me \\
+\cline{2-3}
+                 & Report & Wrote introduction, data augmentation, and challenges. Gave feedback for improvement. \\
+\hline
+\textbf{Yuma Ogasawara}  & Evaluation of baseline models & Created a Jupyter Notebook file to evaluate the CER and WER of Whisper models and ReazonSpeech models. See evaluate\_baselines.ipynb for details. \\
+\cline{2-3}
+                 & Text normalization & Made modifications to src/metrics.py and src/text\_normalizer.py to remove spacing and Japanese punctuations. \\
+\cline{2-3}
+                 & Hyperparameter tuning & Experimented with various parameters for end-to-end fine-tuning, but meaningful improvements in the metrics were not achieved. \\
+\cline{2-3}
+                 & Abstract and Approach Section Writing & Wrote the abstract and the approach section of the paper.\\
+\cline{2-3}
+                 & Model description & Researched the Whisper and ReazonSpeech models and wrote the corresponding section in the paper. \\
+\cline{2-3}
+                 & Evaluation metrics description & Wrote the section on evaluation metrics, except for the part discussing differences in kanji representation. \\
+\cline{2-3}
+                 & Experiments and results section writing & Wrote the qualitative analysis subsection under the experiments and results section. \\
+\hline
+\end{tabular}
+\caption{Contributions of team members}
+\end{table}
 \end{document}

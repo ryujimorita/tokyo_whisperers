@@ -1,0 +1,25 @@
+# Output directory for plots
+output_dir: "report/small_spec_eval"
+
+# Window size for smoothing
+window_size: 5
+
+# Whether to show standard deviation
+show_std: true
+
+# Figure size
+figsize: [8, 6]
+
+# Metrics to plot
+metrics_to_plot:
+  - eval_loss
+  - eval_wer
+  - eval_cer
+
+# Experiment definitions
+experiments:
+  - name: "Small - No Spec Aug"
+    path: "output/e2e_small"
+
+  - name: "Small - Spec Aug"
+    path: "output/e2e_spec_aug_small" 

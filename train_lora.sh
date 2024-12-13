@@ -1,0 +1,3 @@
+sh scripts/r_32_a_16_d_025_spec_aug.sh
+sh scripts/r_64_a_32_d_025_spec_aug.sh
+sh scripts/r_128_a_64_d_025_spec_aug.sh

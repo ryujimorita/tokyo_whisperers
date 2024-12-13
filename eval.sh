@@ -62,6 +62,12 @@ poetry run python run_evaluation.py \
 
 poetry run python run_evaluation.py \
     --model_type whisper \
+    --model_path "openai/whisper-medium" \
+    --dataset_config "conf/dataset_config_no_cv.yaml" \
+    --output_file "results/baseline_medium.json"
+
+poetry run python run_evaluation.py \
+    --model_type whisper \
     --model_path "openai/whisper-large-v3" \
     --dataset_config "conf/dataset_config_no_cv.yaml" \
     --output_file "results/baseline_large_v3.json"
