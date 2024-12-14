@@ -33,11 +33,10 @@
 }
 
 @misc{githubWhispermodelcardmdMain,
-	author = {{OpenAI}},
-	title = {Whisper Model Card},
-	year = {2024},
+	author = {openai},
+	title = {whisper/model-card.md},
 	url = {https://github.com/openai/whisper/blob/main/model-card.md},
-	note = {[Accessed 09-12-2024]}
+	year = {2024},
 }
 
 @inproceedings{radford2023robust,
@@ -50,121 +49,100 @@
 }
 
 @misc{githubOpenaiWhisper,
-	author = {{OpenAI}},
-	title = {GitHub - OpenAI Whisper},
-	year = {2024},
+	author = {},
+	title = {GitHub - openai/whisper},
 	url = {https://github.com/openai/whisper?tab=readme-ov-file#available-models-and-languages},
-	note = {[Accessed 09-12-2024]}
+	year = {},
 }
 
 @misc{githubReazonSpeech,
-	author = {{Reazon Research}},
-	title = {Massive Open Japanese Speech Corpus},
-	year = {2024},
+	author = {},
+	title = {Massive open Japanese speech corpus},
 	url = {https://github.com/reazon-research/ReazonSpeech?tab=readme-ov-file#packages},
-	note = {[Accessed 09-12-2024]}
+	year = {},
+	note = {[Accessed 09-12-2024]},
 }
 
-@online{ardilaCommonVoiceMassivelyMultilingual2020,
+@misc{ardilaCommonVoiceMassivelyMultilingual2020,
   title = {Common {{Voice}}: {{A Massively-Multilingual Speech Corpus}}},
-  shorttitle = {Common {{Voice}}},
   author = {Ardila, Rosana and Branson, Megan and Davis, Kelly and Henretty, Michael and Kohler, Michael and Meyer, Josh and Morais, Reuben and Saunders, Lindsay and Tyers, Francis M. and Weber, Gregor},
-  date = {2020-03-05},
+  year = {2020},
   eprint = {1912.06670},
-  eprinttype = {arXiv},
-  eprintclass = {cs},
-  url = {http://arxiv.org/abs/1912.06670},
-  urldate = {2024-12-07},
-  abstract = {The Common Voice corpus is a massively-multilingual collection of transcribed speech intended for speech technology research and development. Common Voice is designed for Automatic Speech Recognition purposes but can be useful in other domains (e.g. language identification). To achieve scale and sustainability, the Common Voice project employs crowdsourcing for both data collection and data validation. The most recent release includes 29 languages, and as of November 2019 there are a total of 38 languages collecting data. Over 50,000 individuals have participated so far, resulting in 2,500 hours of collected audio. To our knowledge this is the largest audio corpus in the public domain for speech recognition, both in terms of number of hours and number of languages. As an example use case for Common Voice, we present speech recognition experiments using Mozilla’s DeepSpeech Speech-to-Text toolkit. By applying transfer learning from a source English model, we find an average Character Error Rate improvement of 5.99 ± 5.48 for twelve target languages (German, French, Italian, Turkish, Catalan, Slovenian, Welsh, Irish, Breton, Tatar, Chuvash, and Kabyle). For most of these languages, these are the first ever published results on end-to-end Automatic Speech Recognition.},
-  langid = {english},
-  pubstate = {prepublished},
-  keywords = {Computer Science - Computation and Language,Computer Science - Machine Learning},
+  archivePrefix = {arXiv},
+  primaryClass = {cs},
+  url = {http://arxiv.org/abs/1912.06670}
 }
 
-@online{conneauFLEURSFewshotLearning2022,
+@misc{conneauFLEURSFewshotLearning2022,
   title = {{{FLEURS}}: {{Few-shot Learning Evaluation}} of {{Universal Representations}} of {{Speech}}},
-  shorttitle = {{{FLEURS}}},
   author = {Conneau, Alexis and Ma, Min and Khanuja, Simran and Zhang, Yu and Axelrod, Vera and Dalmia, Siddharth and Riesa, Jason and Rivera, Clara and Bapna, Ankur},
-  date = {2022-05-25},
+  year = {2022},
   eprint = {2205.12446},
-  eprinttype = {arXiv},
-  eprintclass = {cs},
-  url = {http://arxiv.org/abs/2205.12446},
-  urldate = {2024-12-07},
-  abstract = {We introduce FLEURS, the Few-shot Learning Evaluation of Universal Representations of Speech benchmark. FLEURS is an n-way parallel speech dataset in 102 languages built on top of the machine translation FLoRes-101 benchmark, with approximately 12 hours of speech supervision per language. FLEURS can be used for a variety of speech tasks, including Automatic Speech Recognition (ASR), Speech Language Identification (Speech LangID), Translation and Retrieval. In this paper, we provide baselines for the tasks based on multilingual pre-trained models like mSLAM. The goal of FLEURS is to enable speech technology in more languages and catalyze research in low-resource speech understanding.},
-  langid = {english},
-  pubstate = {prepublished},
-  keywords = {Computer Science - Computation and Language,Computer Science - Machine Learning,Computer Science - Sound,Electrical Engineering and Systems Science - Audio and Speech Processing},
+  archivePrefix = {arXiv},
+  primaryClass = {cs},
+  url = {http://arxiv.org/abs/2205.12446}
 }
-@online{huLoRALowRankAdaptation2021,
+
+@misc{huLoRALowRankAdaptation2021,
   title = {{{LoRA}}: {{Low-Rank Adaptation}} of {{Large Language Models}}},
-  shorttitle = {{{LoRA}}},
   author = {Hu, Edward J. and Shen, Yelong and Wallis, Phillip and Allen-Zhu, Zeyuan and Li, Yuanzhi and Wang, Shean and Wang, Lu and Chen, Weizhu},
-  date = {2021-10-16},
+  year = {2021},
   eprint = {2106.09685},
-  eprinttype = {arXiv},
-  eprintclass = {cs},
-  url = {http://arxiv.org/abs/2106.09685},
-  urldate = {2024-12-10},
-  abstract = {An important paradigm of natural language processing consists of large-scale pretraining on general domain data and adaptation to particular tasks or domains. As we pre-train larger models, full fine-tuning, which retrains all model parameters, becomes less feasible. Using GPT-3 175B as an example – deploying independent instances of fine-tuned models, each with 175B parameters, is prohibitively expensive. We propose Low-Rank Adaptation, or LoRA, which freezes the pretrained model weights and injects trainable rank decomposition matrices into each layer of the Transformer architecture, greatly reducing the number of trainable parameters for downstream tasks. Compared to GPT-3 175B fine-tuned with Adam, LoRA can reduce the number of trainable parameters by 10,000 times and the GPU memory requirement by 3 times. LoRA performs on-par or better than finetuning in model quality on RoBERTa, DeBERTa, GPT-2, and GPT-3, despite having fewer trainable parameters, a higher training throughput, and, unlike adapters, no additional inference latency. We also provide an empirical investigation into rank-deficiency in language model adaptation, which sheds light on the efficacy of LoRA. We release a package that facilitates the integration of LoRA with PyTorch models and provide our implementations and model checkpoints for RoBERTa, DeBERTa, and GPT-2 at https://github.com/microsoft/LoRA.},
-  langid = {english},
-  pubstate = {prepublished},
-  keywords = {Computer Science - Artificial Intelligence,Computer Science - Computation and Language,Computer Science - Machine Learning},
+  archivePrefix = {arXiv},
+  primaryClass = {cs},
+  url = {http://arxiv.org/abs/2106.09685}
 }
 
-@online{holdingsReazonSpeechV21Setting2024,
+@misc{holdingsReazonSpeechV21Setting2024,
   title = {ReazonSpeech v2.1: Setting a New Standard in Japanese ASR},
-  author = {Holdings, Reazon},
-  date = {2024-08-01},
-  url = {https://research.reazon.jp/blog/2024-08-01-ReazonSpeech.html},
-  urldate = {2024-12-07},
-  langid = {japanese}
+  author = {Yin, Yue and Mori, Daijiro and Fujimoto, Seiji},
+  year = {2024},
+  url = {https://research.reazon.jp/blog/2024-08-01-ReazonSpeech.html}
 }
 
-@article{radfordRobustSpeechRecognition,
-  title = {Robust {{Speech Recognition}} via {{Large-Scale Weak Supervision}}},
-  author = {Radford, Alec and Kim, Jong Wook and Xu, Tao and Brockman, Greg and McLeavey, Christine and Sutskever, Ilya},
-  abstract = {We study the capabilities of speech processing systems trained simply to predict large amounts of transcripts of audio on the internet. When scaled to 680,000 hours of multilingual and multitask supervision, the resulting models generalize well to standard benchmarks and are often competitive with prior fully supervised results but in a zeroshot transfer setting without the need for any finetuning. When compared to humans, the models approach their accuracy and robustness. We are releasing models and inference code to serve as a foundation for further work on robust speech processing.},
-  langid = {english},
+@misc{radfordRobustSpeechRecognition,
+      title={Robust Speech Recognition via Large-Scale Weak Supervision}, 
+      author={Alec Radford and Jong Wook Kim and Tao Xu and Greg Brockman and Christine McLeavey and Ilya Sutskever},
+      year={2022},
+      eprint={2212.04356},
+      archivePrefix={arXiv},
+      primaryClass={eess.AS},
+      url={https://arxiv.org/abs/2212.04356}, 
 }
 
-@online{sonobeJSUTCorpusFree2017,
+@misc{sonobeJSUTCorpusFree2017,
   title = {{{JSUT}} Corpus: Free Large-Scale {{Japanese}} Speech Corpus for End-to-End Speech Synthesis},
-  shorttitle = {{{JSUT}} Corpus},
   author = {Sonobe, Ryosuke and Takamichi, Shinnosuke and Saruwatari, Hiroshi},
-  date = {2017-10-28},
+  year = {2017},
   eprint = {1711.00354},
-  eprinttype = {arXiv},
-  eprintclass = {cs},
-  url = {http://arxiv.org/abs/1711.00354},
-  urldate = {2024-12-07},
-  abstract = {Thanks to improvements in machine learning techniques including deep learning, a free large-scale speech corpus that can be shared between academic institutions and commercial companies has an important role. However, such a corpus for Japanese speech synthesis does not exist. In this paper, we designed a novel Japanese speech corpus, named the “JSUT corpus,” that is aimed at achieving end-to-end speech synthesis. The corpus consists of 10 hours of reading-style speech data and its transcription and covers all of the main pronunciations of daily-use Japanese characters. In this paper, we describe how we designed and analyzed the corpus. The corpus is freely available online.},
-  langid = {english},
-  pubstate = {prepublished},
-  keywords = {Computer Science - Computation and Language},
+  archivePrefix = {arXiv},
+  primaryClass = {cs},
+  url = {http://arxiv.org/abs/1711.00354}
 }
 
-@article{yinReazonSpeechFreeMassive,
+@misc{yinReazonSpeechFreeMassive,
   title = {{{ReazonSpeech}}: {{A Free}} and {{Massive Corpus}} for {{Japanese ASR}}},
-  author = {Yin, Yue and Mori, Daijiro and Fujimoto, Seiji and Holdings, Reazon},
+  author = {Yin, Yue and Mori, Daijiro and Fujimoto, Seiji},
   abstract = {ReazonSpeech is a 15,000-hour and continuously growing corpus collected from Japanese TV shows free for commercial usage. The automatic speech recognition (ASR) model trained on ReazonSpeech achieves state-of-the-art results with 8.23\% character error rate (CER) on JSUT basic5000[1] and 9.93\% on Common Voice[2] v8.0 test set, on par with the recently released Whisper[3] largev2 model. We released the dataset creation toolkit under Apache License 2.0 and made both the corpus and the pretrained ASR model freely available1）.},
   langid = {english},
+  year = {2023}
 }
+
 @inproceedings{karitaLenientEvaluationJapanese2023,
   title = {Lenient {{Evaluation}} of {{Japanese Speech Recognition}}: {{Modeling Naturally Occurring Spelling Inconsistency}}},
   shorttitle = {Lenient {{Evaluation}} of {{Japanese Speech Recognition}}},
   booktitle = {Proceedings of the {{Workshop}} on {{Computation}} and {{Written Language}} ({{CAWL}} 2023)},
   author = {Karita, Shigeki and Sproat, Richard and Ishikawa, Haruko},
-  date = {2023},
+  year = {2023},
   pages = {61--70},
   publisher = {Association for Computational Linguistics},
   location = {Toronto, Canada},
   doi = {10.18653/v1/2023.cawl-1.8},
   url = {https://aclanthology.org/2023.cawl-1.8},
   urldate = {2024-12-08},
-  abstract = {Word error rate (WER) and character error rate (CER) are standard metrics in Speech Recognition (ASR), but one problem has always been alternative spellings: If one’s system transcribes adviser whereas the ground truth has advisor, this will count as an error even though the two spellings really represent the same word.},
+  abstract = {Word error rate (WER) and character error rate (CER) are standard metrics in Speech Recognition (ASR), but one problem has always been alternative spellings: If one's system transcribes adviser whereas the ground truth has advisor, this will count as an error even though the two spellings really represent the same word.},
   eventtitle = {Proceedings of the {{Workshop}} on {{Computation}} and {{Written Language}} ({{CAWL}} 2023)},
-  langid = {english},
+  langid = {english}
 }
 
 @misc{IndroducingWhisper,
@@ -212,7 +190,7 @@
 }
 
 @article{SpecAugment,
-  title={Specaugment: A simple data augmentation method for automatic speech recognition},
+  title={SpecAugment: A simple data augmentation method for automatic speech recognition},
   author={Park, Daniel S and Chan, William and Zhang, Yu and Chiu, Chung-Cheng and Zoph, Barret and Cubuk, Ekin D and Le, Quoc V},
   journal={arXiv preprint arXiv:1904.08779},
   year={2019}
