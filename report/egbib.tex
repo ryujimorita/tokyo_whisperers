@@ -14,10 +14,10 @@
 \usepackage{multirow}
 \usepackage{array}
 \usepackage{adjustbox}
-\usepackage{xeCJK}
+\usepackage{placeins} 
 \usepackage{float}
 \usepackage{xcolor}
-\usepackage{natbib}
+
 
 % Include other packages here, before hyperref.
 
@@ -34,8 +34,6 @@
 % Pages are numbered in submission mode, and unnumbered in camera-ready
 \ifcvprfinal\pagestyle{empty}\fi
 \begin{document}
-
-\bibliographystyle{ieee_fullname}
 
 %%%%%%%%% TITLE
 \title{Efficient Adaptation of Multilingual Models for Japanese ASR}
@@ -73,7 +71,7 @@ Our approach involves using LoRA \cite{huLoRALowRankAdaptation2021} alongside E2
 The success of our project could have a transformative impact on ASR development, particularly for languages with complex writing systems like Japanese. Improved ASR models could provide tangible benefits across various sectors. For instance, individuals with disabilities who rely on ASR for communication, customer service systems requiring precise transcription and translation, and educational tools designed to support language learning could all benefit from enhanced speech recognition solutions. By bridging the gap between monolingual and multilingual performance, our project also aims to contribute valuable insights to the broader ASR community, influencing future research and development strategies.
 
 \subsection{Dataset}
-We used the Japanese datasets from Google Fleurs (GF)\cite{conneauFLEURSFewshotLearning2022}, Common Voice (CV)\cite{ardilaCommonVoiceMassivelyMultilingual2020}, JSUT\cite{sonobeJSUTCorpusFree2017}, and ReazonSpeech \cite{yinReazonSpeechFreeMassive} for training, and GF, CV and JSUT for testing, with a 80:10:10 train, validation, and test split. The Whisper models were previously evaluated in Japanese using CV and GF \cite{radfordRobustSpeechRecognition}, and the ReazonSpeech model was previously evaluated using the JSUT and CV \cite{holdingsReazonSpeechV21Setting2024}. Since the training sets used for the Whisper models were not disclosed, we leveraged the four datasets under the assumption that they were not already used. The datasets give us diversity in quality, vocal gender, and comprehensiveness of the language. A comparison of the datasets is summarized in Table 1.
+We used the Japanese datasets from Google Fleurs (GF)\cite{conneauFLEURSFewshotLearning2022}, Common Voice (CV)\cite{ardilaCommonVoiceMassivelyMultilingual2020}, JSUT\cite{sonobeJSUTCorpusFree2017}, and ReazonSpeech \cite{yinReazonSpeechFreeMassive} for training, and GF, CV and JSUT for testing, with a 80:10:10 train, validation, and test split. The Whisper models were previously evaluated in Japanese using CV and GF \cite{radfordRobustSpeechRecognition}, and the ReazonSpeech model was previously evaluated using the JSUT and CV \cite{holdingsReazonSpeechV21Setting2024}. Since the training sets used for the Whisper models were not disclosed, we leveraged the four datasets under the assumption that they were not already used. The datasets give us diversity in quality, vocal gender, and comprehensiveness of the language. A comparison of the datasets is summarized in Table~\ref{tab:comparisondatasets}.
 \begin{table}[ht]
 \centering
 \resizebox{0.45\textwidth}{!}{
@@ -98,6 +96,7 @@ We used the Japanese datasets from Google Fleurs (GF)\cite{conneauFLEURSFewshotL
 \end{tabular}
 }
 \caption{Comparison of Datasets}
+\label{tab:comparisondatasets}
 \end{table}
 
 \textbf{Google Fleurs (GF):}
@@ -352,34 +351,41 @@ SpecAugment, which involves modifying the spectrograms by randomly masking frequ
     \label{fig:spec_aug_comparison}
 \end{figure}
 
-\begin{table*}[ht]
+% \begin{table*}[ht]
+%     \centering
+%     \renewcommand{\arraystretch}{1.2}
+%     \begin{tabular}{p{2cm}p{4cm}p{4cm}p{4cm}}
+%         \hline
+%         \textbf{Model} & \textbf{Transcription} & \textbf{Phonetic Reading} & \textbf{English Translation} \\
+%         \hline
+%         \textbf{Ground Truth} & 
+%         \begin{CJK}{UTF8}{min}\textcolor{blue}{外見}から\textcolor{blue}{判断}すると彼女はとても金持ちのようだ\end{CJK} & 
+%         Gaiken kara handan suru to kanojo wa totemo kanemochi no you da & 
+%         Judging by appearances, she seems very wealthy. \\
+        
+%         \textbf{Baseline Tiny} & 
+%         \begin{CJK}{UTF8}{min}\textcolor{red}{外県}から\textcolor{red}{ハンダン}すると彼女はとても金持ちのようだ\end{CJK} & 
+%         & Judging from outside provinces, she seems very wealthy. \\
+        
+%         \textbf{LoRA Tiny} & 
+%         \begin{CJK}{UTF8}{min}\textcolor{red}{外県}から\textcolor{blue}{判断}すると彼女はとても金持ちのようだ\end{CJK} & 
+%         & Judging from outside provinces, she seems very wealthy. \\
+        
+%         \textbf{E2E Tiny} & 
+%         \begin{CJK}{UTF8}{min}\textcolor{blue}{外見}から\textcolor{blue}{判断}すると彼女はとても金持ちのようだ\end{CJK} & 
+%         & Judging by appearances, she seems very wealthy. \\
+%         \hline
+%     \end{tabular}
+%     \caption{Transcription samples from various models with their phonetic readings and English translations. The phonetic readings are consistent across all models, but differences in Kanji lead to significant variations in semantic meaning.}
+%     \label{tab:transcription_comparison}
+% \end{table*}
+
+\begin{figure*}[ht]
     \centering
-    \renewcommand{\arraystretch}{1.2}
-    \begin{tabular}{p{2cm}p{4cm}p{4cm}p{4cm}}
-        \hline
-        \textbf{Model} & \textbf{Transcription} & \textbf{Phonetic Reading} & \textbf{English Translation} \\
-        \hline
-        \textbf{Ground Truth} & 
-        \begin{CJK}{UTF8}{min}\textcolor{blue}{外見}から\textcolor{blue}{判断}すると彼女はとても金持ちのようだ\end{CJK} & 
-        Gaiken kara handan suru to kanojo wa totemo kanemochi no you da & 
-        Judging by appearances, she seems very wealthy. \\
-        
-        \textbf{Baseline Tiny} & 
-        \begin{CJK}{UTF8}{min}\textcolor{red}{外県}から\textcolor{red}{ハンダン}すると彼女はとても金持ちのようだ\end{CJK} & 
-        & Judging from outside provinces, she seems very wealthy. \\
-        
-        \textbf{LoRA Tiny} & 
-        \begin{CJK}{UTF8}{min}\textcolor{red}{外県}から\textcolor{blue}{判断}すると彼女はとても金持ちのようだ\end{CJK} & 
-        & Judging from outside provinces, she seems very wealthy. \\
-        
-        \textbf{E2E Tiny} & 
-        \begin{CJK}{UTF8}{min}\textcolor{blue}{外見}から\textcolor{blue}{判断}すると彼女はとても金持ちのようだ\end{CJK} & 
-        & Judging by appearances, she seems very wealthy. \\
-        \hline
-    \end{tabular}
+    \includegraphics[width=0.95\linewidth]{./qual_table.png}
     \caption{Transcription samples from various models with their phonetic readings and English translations. The phonetic readings are consistent across all models, but differences in Kanji lead to significant variations in semantic meaning.}
     \label{tab:transcription_comparison}
-\end{table*}
+\end{figure*}
 
 \textbf{Finding an Optimal LoRA Rank:}
 In Figure~\ref{fig:lora_comparison}, we compare the performance of LoRA fine-tuning across different ranks. The rank corresponds to the number of trainable parameters in the LoRA adapter layers, which are combined with the original model parameters to produce the final output during inference.
@@ -399,10 +405,10 @@ Finally, the Original Small model achieves the lowest CER of 9.9, reflecting the
 This section provides a qualitative exploration of ASR model performance, focusing on how fine-tuning approaches, such as LoRA and E2E, introduce improvements over baseline models. We highlight two representative cases from our analysis: the first showcases successful adaptation to contextual nuances enabled by fine-tuning, while the second illustrates limitations in handling domain-specific terminology when such terms are not adequately represented in the fine-tuning data.
 
 \textbf{Handling Ambiguity in Contextual Judgments:}
-Here, we evaluate how ASR models address ambiguity in transcription when faced with phonetically similar phrases. Accurate recognition in such cases relies heavily on contextual clues. The phonetic readings produced by all models (Tiny Base, Tiny LoRA, and Tiny E2E) are identical, reflecting that the models consistently capture the correct pronunciation of the input. However, Tiny LoRA and Tiny E2E exhibit a notable advancement over Tiny Base by generating kanji characters that more accurately reflect the intended meaning within the context of the sentence. This improvement highlights the effectiveness of fine-tuning techniques, which enable the models to go beyond merely preserving phonetic fidelity and instead incorporate semantic understanding to produce contextually appropriate transcriptions. These results emphasize how targeted adjustments can refine a model's ability to align written output with both phonetic and contextual correctness(see Table~\ref{tab:transcription_comparison} for details).
+Here, we evaluate how ASR models address ambiguity in transcription when faced with phonetically similar phrases. Accurate recognition in such cases relies heavily on contextual clues. The phonetic readings produced by all models (Tiny Base, Tiny LoRA, and Tiny E2E) are identical, reflecting that the models consistently capture the correct pronunciation of the input. However, Tiny LoRA and Tiny E2E exhibit a notable advancement over Tiny Base by generating kanji characters that more accurately reflect the intended meaning within the context of the sentence. This improvement highlights the effectiveness of fine-tuning techniques, which enable the models to go beyond merely preserving phonetic fidelity and instead incorporate semantic understanding to produce contextually appropriate transcriptions. These results emphasize how targeted adjustments can refine a model's ability to align written output with both phonetic and contextual correctness(see Figure~\ref{tab:transcription_comparison} for details).
 
 \textbf{Handling of Technical Terms and Specialized Vocabulary:}
-An area where the models encountered notable challenges was in handling specialized medical terms. Terms such as "encephalitis" and "Listeria" were frequently misinterpreted across all models. Although fine-tuning provided minor improvements, these errors surface the limitations of the current training data and the necessity of incorporating domain-specific datasets to improve recognition. Additional details in the Appendix (Table~\ref{tab:transcription_comparison_appendix}).
+An area where the models encountered notable challenges was in handling specialized medical terms. Terms such as "encephalitis" and "Listeria" were frequently misinterpreted across all models. Although fine-tuning provided minor improvements, these errors surface the limitations of the current training data and the necessity of incorporating domain-specific datasets to improve recognition. Additional details in the Appendix (Figure~\ref{tab:transcription_comparison_appendix}).
 
 These findings underscore the varying capabilities of ASR models in handling ambiguity and specialized vocabulary, emphasizing the need for targeted improvements in context understanding and domain-specific training. 
 
@@ -416,6 +422,8 @@ Fine-tuning multi-lingual models to achieve language-specific specialization off
 \clearpage
 
 {\small
+%\bibliographystyle{ieee_fullname}
+\bibliographystyle{unsrt}
 \bibliography{egbib}
 }
 
@@ -423,103 +431,98 @@ Fine-tuning multi-lingual models to achieve language-specific specialization off
 \clearpage
 
 \appendix
-\section*{Appendix}
 \renewcommand{\thesection}{\Alph{section}}
 \setcounter{section}{0}
 
+% Switch to single-column layout
+\onecolumn
+
+\section*{Appendix}
+
 \section{Handling of Technical Terms and Specialized Vocabulary}
 
-\begin{table}[H]
+\begin{figure}[htbp]
     \centering
-    \caption{Transcription and Translation Comparisons Appendix}
+    \includegraphics[width=0.9\linewidth]{./app_table.png}
+    \caption{Additional qualitative samples from our trained model.}
     \label{tab:transcription_comparison_appendix}
-    \renewcommand{\arraystretch}{1.3}
-    \begin{adjustbox}{width=\textwidth}
-    \begin{tabular}{p{2.5cm}p{5cm}p{5cm}p{4cm}}
-        \toprule
-        \textbf{Model} & \textbf{Transcription} & \textbf{Phonetic Reading} & \textbf{English Translation} \\
-        \midrule
-        \textbf{Ground Truth} & \begin{CJK*}{UTF8}{min}マイコプラズマ 脳炎 猫 ひっかき 病 赤痢 アメ - バ 熱帯 熱 マラリア 結核 リステリア トキソプラズマ など の 病原 体 で も 脳炎 が 起こる こと が ある\end{CJK*} & Maikopurazuma nouen neko hikkaki byou sekiri ameeba nettai netsu mararia kekkaku risuteria tokisopurazuma nado no byougentai demo nouen ga okoru koto ga aru & Brain inflammation can also be caused by pathogens such as Mycoplasma, cat-scratch disease, Entamoeba histolytica, tropical malaria, tuberculosis, Listeria, or Toxoplasma. \\
-        \textbf{Baseline Tiny} & \begin{CJK*}{UTF8}{min}マイコプラズマ の 上 ネコヒッカキ 病 セキリアメイバ - ネッタイネ つ マラリア 結果 く リステリア 時 ソ プラズマ など の 病 源 体 で も の え が 起こる こと が ある\end{CJK*} & Maikopurazuma no ue neko hikkaki byou sekiri ameiba nettai netsu mararia kekkaku risuteria tokisopurazuma nado no byougentai demo noe ga okoru koto ga aru & (Nonsensical and fragmented; many terms mispronounced or incorrectly written.) \\
-        \textbf{Lora Tiny} & \begin{CJK*}{UTF8}{min}マイコプラズマ の うえ 根子 ひっかき 病 セキリアメイバ - バ 熱帯 熱 マラリア 結果 く ビス テリア 特質 プラズマ など の 病 源 体 で も の うえ が 起こる こと が ある\end{CJK*} & Maikopurazuma no ue neko hikkaki byou sekiri ameeba nettai netsu mararia kekkaku bisuteria tokushitsu purazuma nado no byougentai demo noue ga okoru koto ga aru\\
-        \textbf{E2E Tiny} & \begin{CJK*}{UTF8}{min}マイコプラズマ の 上 猫 ヒッカ 疑 病 赤 利 あめ ば 熱帯 熱 マラリア 結核 ギス テリア 特 ソ プラズマ など の 病原 体 で も 上演 が 起こる こと が ある\end{CJK*} & Maikopurazuma no ue neko hikka giyou sekiri ameba nettai netsu mararia kekkaku gisutoria tokuso purazuma nado no jouen ga okoru koto ga aru\\
-        \bottomrule
-    \end{tabular}
-    \end{adjustbox}
-\end{table}
+\end{figure}
 
 \section{Source Code}
-\raggedright
-Our source code is available at :
-\href{https://github.com/ryujimorita/tokyo_whisperers}{https://github.com/ryujimorita/tokyo\_whisperers}
+
+\noindent Our source code is available at:  
+\url{https://github.com/ryujimorita/tokyo_whisperers}
+
+% Revert to two-column layout if needed
+\twocolumn
 
 
 
 %-------------------------------------------------------------------------
-\clearpage
+% \clearpage
 
-\begin{table} \small%
-\renewcommand{\arraystretch}{0.9}
-\begin{tabular}{|p{2cm}|p{2.9cm}|p{13cm}|}
-\hline
-\textbf{Student} & \textbf{Contributed Aspects} & \textbf{Details}  \\
-\hline
-\textbf{Mark Bajo} & Overall Codebase & Owner of majority of the code and modules in the repository. Please confirm this claim by inspecting the github repository and please note that this statement is not to undermine my teammate's contributions. Implementation of E2E and LoRA routines. Fractional dataloading functionalities. Regularization (dropout, weight-decay) implementation. Metrics calculation routines for WER and CER. Evaluation scripts for the baseline (whisper and reazonspeech) and trained models. Established general routine for the experiments and collaboration via WandB setup. Quality of life functionalites such as timely saving of metrics and models and plot generation for the report. \\
-\cline{2-3} & Plot Generation & Generated the plots in the report. Developed a module for plotting selected experiments. \\
-\cline{2-3} & Analysis & Wrote the quantitative analysis, approach section, LoRA parameter experiments discussion. Ran experiments used in the paper with the agreed hyperparameters and setup discussed by the team. \\
-\cline{2-3} & Hyperparameter Tuning and Ablation & Identified early problems such as catastrophic forgetting and proposed LoRA (Figure~\ref{fig:lora_comparison}). Experimented with different parameters for LoRA and E2E routines. Experimented with different whisper model sizes and freeze condition of layers. See Figure~\ref{fig:training_metrics}. Set-up experiment and conducted ablation of data-augmentation as discussed by the team. See Figure~\ref{fig:spec_aug_comparison}. \\
-\cline{2-3} & Overall project direction & Authored the first draft of our project proposal, conducted research paper review and shared knowledge, paper suggestion, gave feedback for the paper and code implementation, and overall editing of report. \\
-\hline
-\textbf{Haruka Fukukawa} & Dataset EDA & Read the papers and blogs published with the datasets and manually went through all four datasets to verify the quality of the data and balance of characteristics \\
-\cline{2-3}
-                 & Dataloaders & Wrote the code related to splitting the datasets, sampling a fraction of each, and concatenating the four datasets into one dataset. See src/dataloader.py. \\
-\cline{2-3}
-                 & Data Configs & Wrote the configs to download each dataset from HuggingFace. See conf/dataset\_config.yaml. \\
-\cline{2-3}
-                 & Selected Subcorpuses and Versions of Datasets & Based on qualitative analysis and running trials on multiple versions of the datasets, I selected the vers. 11 of the CV dataset and the Basic5000 subcorpus of JSUT. The newer versions of CV were too large while being subpar in quality compared to other datasets, and using the full JSUT dataset would add too much bias on the exceptional quality and singular voice compared to other datasets. Discussion of dataset EDA and selection omitted in report for length limit. \\
-\cline{2-3}
-                 & Inference & Wrote the code to load and run a fine-tuned model from the saved checkpoint on the test dataset. See infer.py.  \\
-\cline{2-3}
-                 & Analysis & Qualitative analysis of the outputs from our model. See discussion on CER and WER on our output in the section on Experiments and Results.  \\
-\cline{2-3}
-                 & Hyperparameter tuning & Ran trials with our models, focusing on the dataset percentage to sample. The results obtained were ultimately inconclusive, with only insignificant changes in the resulting metrics.  \\
-\cline{2-3}
-                 & Dataset Description & Wrote the section describing the datasets and reasoning for why each of them were selected. See section 1.1 Dataset.  \\
-\cline{2-3}
-                 & Conclusion & Wrote the conclusion portion of the report. See Conclusion.  \\
-\cline{2-3}
-                 & Report Editing & Gave feedback and comments on the content of teammates' work. See Introduction/Background/Motivation.  \\
-\hline
-\textbf{Ryuji Morita} & Research & Reviewed research papers and websites to understand the Whisper, ReazonSpeech models as well as each dataset we used.
-Investigated solutions to resolve sudden increases in WER / CER. \\
-\cline{2-3}
-                 & Data Augmentation & Implemented two types of data augmentation: audio augmentation and SpecAugment. See src.augment.py.  \\
-\cline{2-3}
-                 & Visualization & Developed a module to plot training/evaluation loss, learning rate curves, and evaluation metrics such as WER and CER. See src.viz.py.  \\
-\cline{2-3}
-                 & Hyperparameter Tuning & Conducted over 20 experiments with various combinations of hyperparameters. Monitored results, identified issues and areas for improvement, and refined the parameters based on observations.  \\
-\cline{2-3}
-                 & Code Modualarization & Explored modularizing the initial baseline evaluation code to enable comprehensive evaluation of all datasets using the test set.  \\
-\cline{2-3}
-                 & Debug, Environment Setup & Identified data leakage from log and made suggestions to fix the issue. Created a Dockerfile for Mac silicon development. Configured settings for Google Colab to facilitate model training. See README.me \\
-\cline{2-3}
-                 & Report & Wrote introduction, data augmentation, and challenges. Gave feedback for improvement. \\
-\hline
-\textbf{Yuma Ogasawara}  & Evaluation of baseline models & Created a Jupyter Notebook file to evaluate the CER and WER of Whisper models and ReazonSpeech models. See evaluate\_baselines.ipynb for details. \\
-\cline{2-3}
-                 & Text normalization & Made modifications to src/metrics.py and src/text\_normalizer.py to remove spacing and Japanese punctuations. \\
-\cline{2-3}
-                 & Hyperparameter tuning & Experimented with various parameters for end-to-end fine-tuning, but meaningful improvements in the metrics were not achieved. \\
-\cline{2-3}
-                 & Abstract and Approach Section Writing & Wrote the abstract and the approach section of the paper.\\
-\cline{2-3}
-                 & Model description & Researched the Whisper and ReazonSpeech models and wrote the corresponding section in the paper. \\
-\cline{2-3}
-                 & Evaluation metrics description & Wrote the section on evaluation metrics, except for the part discussing differences in kanji representation. \\
-\cline{2-3}
-                 & Experiments and results section writing & Wrote the qualitative analysis subsection under the experiments and results section. \\
-\hline
-\end{tabular}
-\caption{Contributions of team members}
-\end{table}
+% \begin{table} \small%
+% \renewcommand{\arraystretch}{0.9}
+% \begin{tabular}{|p{2cm}|p{2.9cm}|p{13cm}|}
+% \hline
+% \textbf{Student} & \textbf{Contributed Aspects} & \textbf{Details}  \\
+% \hline
+% \textbf{Mark Bajo} & Overall Codebase & Owner of majority of the code and modules in the repository. Please confirm this claim by inspecting the github repository and please note that this statement is not to undermine my teammate's contributions. Implementation of E2E and LoRA routines. Fractional dataloading functionalities. Regularization (dropout, weight-decay) implementation. Metrics calculation routines for WER and CER. Evaluation scripts for the baseline (whisper and reazonspeech) and trained models. Established general routine for the experiments and collaboration via WandB setup. Quality of life functionalites such as timely saving of metrics and models and plot generation for the report. \\
+% \cline{2-3} & Plot Generation & Generated the plots in the report. Developed a module for plotting selected experiments. \\
+% \cline{2-3} & Analysis & Wrote the quantitative analysis, approach section, LoRA parameter experiments discussion. Ran experiments used in the paper with the agreed hyperparameters and setup discussed by the team. \\
+% \cline{2-3} & Hyperparameter Tuning and Ablation & Identified early problems such as catastrophic forgetting and proposed LoRA (Figure~\ref{fig:lora_comparison}). Experimented with different parameters for LoRA and E2E routines. Experimented with different whisper model sizes and freeze condition of layers. See Figure~\ref{fig:training_metrics}. Set-up experiment and conducted ablation of data-augmentation as discussed by the team. See Figure~\ref{fig:spec_aug_comparison}. \\
+% \cline{2-3} & Overall project direction & Authored the first draft of our project proposal, conducted research paper review and shared knowledge, paper suggestion, gave feedback for the paper and code implementation, and overall editing of report. \\
+% \hline
+% \textbf{Haruka Fukukawa} & Dataset EDA & Read the papers and blogs published with the datasets and manually went through all four datasets to verify the quality of the data and balance of characteristics \\
+% \cline{2-3}
+%                  & Dataloaders & Wrote the code related to splitting the datasets, sampling a fraction of each, and concatenating the four datasets into one dataset. See src/dataloader.py. \\
+% \cline{2-3}
+%                  & Data Configs & Wrote the configs to download each dataset from HuggingFace. See conf/dataset\_config.yaml. \\
+% \cline{2-3}
+%                  & Selected Subcorpuses and Versions of Datasets & Based on qualitative analysis and running trials on multiple versions of the datasets, I selected the vers. 11 of the CV dataset and the Basic5000 subcorpus of JSUT. The newer versions of CV were too large while being subpar in quality compared to other datasets, and using the full JSUT dataset would add too much bias on the exceptional quality and singular voice compared to other datasets. Discussion of dataset EDA and selection omitted in report for length limit. \\
+% \cline{2-3}
+%                  & Inference & Wrote the code to load and run a fine-tuned model from the saved checkpoint on the test dataset. See infer.py.  \\
+% \cline{2-3}
+%                  & Analysis & Qualitative analysis of the outputs from our model. See discussion on CER and WER on our output in the section on Experiments and Results.  \\
+% \cline{2-3}
+%                  & Hyperparameter tuning & Ran trials with our models, focusing on the dataset percentage to sample. The results obtained were ultimately inconclusive, with only insignificant changes in the resulting metrics.  \\
+% \cline{2-3}
+%                  & Dataset Description & Wrote the section describing the datasets and reasoning for why each of them were selected. See section 1.1 Dataset.  \\
+% \cline{2-3}
+%                  & Conclusion & Wrote the conclusion portion of the report. See Conclusion.  \\
+% \cline{2-3}
+%                  & Report Editing & Gave feedback and comments on the content of teammates' work. See Introduction/Background/Motivation.  \\
+% \hline
+% \textbf{Ryuji Morita} & Research & Reviewed research papers and websites to understand the Whisper, ReazonSpeech models as well as each dataset we used.
+% Investigated solutions to resolve sudden increases in WER / CER. \\
+% \cline{2-3}
+%                  & Data Augmentation & Implemented two types of data augmentation: audio augmentation and SpecAugment. See src.augment.py.  \\
+% \cline{2-3}
+%                  & Visualization & Developed a module to plot training/evaluation loss, learning rate curves, and evaluation metrics such as WER and CER. See src.viz.py.  \\
+% \cline{2-3}
+%                  & Hyperparameter Tuning & Conducted over 20 experiments with various combinations of hyperparameters. Monitored results, identified issues and areas for improvement, and refined the parameters based on observations.  \\
+% \cline{2-3}
+%                  & Code Modualarization & Explored modularizing the initial baseline evaluation code to enable comprehensive evaluation of all datasets using the test set.  \\
+% \cline{2-3}
+%                  & Debug, Environment Setup & Identified data leakage from log and made suggestions to fix the issue. Created a Dockerfile for Mac silicon development. Configured settings for Google Colab to facilitate model training. See README.me \\
+% \cline{2-3}
+%                  & Report & Wrote introduction, data augmentation, and challenges. Gave feedback for improvement. \\
+% \hline
+% \textbf{Yuma Ogasawara}  & Evaluation of baseline models & Created a Jupyter Notebook file to evaluate the CER and WER of Whisper models and ReazonSpeech models. See evaluate\_baselines.ipynb for details. \\
+% \cline{2-3}
+%                  & Text normalization & Made modifications to src/metrics.py and src/text\_normalizer.py to remove spacing and Japanese punctuations. \\
+% \cline{2-3}
+%                  & Hyperparameter tuning & Experimented with various parameters for end-to-end fine-tuning, but meaningful improvements in the metrics were not achieved. \\
+% \cline{2-3}
+%                  & Abstract and Approach Section Writing & Wrote the abstract and the approach section of the paper.\\
+% \cline{2-3}
+%                  & Model description & Researched the Whisper and ReazonSpeech models and wrote the corresponding section in the paper. \\
+% \cline{2-3}
+%                  & Evaluation metrics description & Wrote the section on evaluation metrics, except for the part discussing differences in kanji representation. \\
+% \cline{2-3}
+%                  & Experiments and results section writing & Wrote the qualitative analysis subsection under the experiments and results section. \\
+% \hline
+% \end{tabular}
+% \caption{Contributions of team members}
+% \end{table}
 \end{document}
